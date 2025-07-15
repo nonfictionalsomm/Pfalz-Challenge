@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Pfalz: A Wine Master's Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the app */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .flashcard-container {
+            perspective: 1000px;
+        }
+        .flashcard {
+            width: 100%;
+            height: 20rem;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+        .timeline-item.correct {
+            border-left: 4px solid #4ade80; /* green-400 */
+        }
+        .timeline-item.incorrect {
+            border-left: 4px solid #f87171; /* red-400 */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <div id="app" class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- Main Menu View -->
+        <div id="main-menu-view">
+            <h1 class="text-4xl sm:text-5xl font-bold text-center mb-8 text-purple-400">The Pfalz: A Wine Master's Challenge</h1>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <button data-module="historian" class="module-btn bg-gray-800 hover:bg-purple-700 p-6 rounded-lg shadow-lg transition-colors duration-300">
+                    <h2 class="text-2xl font-semibold mb-2">The Historian's Scroll</h2>
+                    <p class="text-gray-400">Order key historical events.</p>
+                </button>
+                <button data-module="terroir" class="module-btn bg-gray-800 hover:bg-purple-700 p-6 rounded-lg shadow-lg transition-colors duration-300">
+                    <h2 class="text-2xl font-semibold mb-2">The Terroir Architect</h2>
+                    <p class="text-gray-400">Master the soils and geography.</p>
+                </button>
+                <button data-module="ampelographer" class="module-btn bg-gray-800 hover:bg-purple-700 p-6 rounded-lg shadow-lg transition-colors duration-300">
+                    <h2 class="text-2xl font-semibold mb-2">The Ampelographer's Challenge</h2>
+                    <p class="text-gray-400">Identify the region's grapes.</p>
+                </button>
+                <button data-module="lawmaker" class="module-btn bg-gray-800 hover:bg-purple-700 p-6 rounded-lg shadow-lg transition-colors duration-300">
+                    <h2 class="text-2xl font-semibold mb-2">The Lawmaker's Desk</h2>
+                    <p class="text-gray-400">Navigate the appellation laws.</p>
+                </button>
+                <button data-module="gastronome" class="module-btn bg-gray-800 hover:bg-purple-700 p-6 rounded-lg shadow-lg transition-colors duration-300">
+                    <h2 class="text-2xl font-semibold mb-2">The Gastronome's Table</h2>
+                    <p class="text-gray-400">Explore cuisine and pairings.</p>
+                </button>
+                <button data-module="critic" class="module-btn bg-gray-800 hover:bg-purple-700 p-6 rounded-lg shadow-lg transition-colors duration-300">
+                    <h2 class="text-2xl font-semibold mb-2">The Critic's Corner</h2>
+                    <p class="text-gray-400">Analyze producers and vintages.</p>
+                </button>
+            </div>
+            <div class="text-center mb-8">
+                <button data-module="flashcard" class="module-btn bg-gray-700 hover:bg-purple-600 px-8 py-4 rounded-lg shadow-lg transition-colors duration-300 text-xl font-semibold">
+                    Flashcard Study
+                </button>
+            </div>
+            <div class="text-center">
+                <button id="ai-settings-btn" class="text-gray-400 hover:text-white transition-colors duration-300">⚙️ AI Settings</button>
+            </div>
+        </div>
+
+        <!-- Quiz View -->
+        <div id="quiz-view" class="hidden">
+            <h2 id="quiz-title" class="text-3xl font-bold text-center mb-6 text-purple-400"></h2>
+            <div id="quiz-content" class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <p id="question-text" class="text-xl mb-6"></p>
+                <div id="answer-options" class="grid grid-cols-1 gap-4"></div>
+                <div id="explanation-container" class="mt-6 hidden"></div>
+                <div id="ai-feature-container" class="mt-4 hidden"></div>
+                <div class="mt-6 flex justify-between items-center">
+                    <div id="score-tracker" class="text-lg">Score: 0/0</div>
+                    <button id="next-question-btn" class="bg-purple-700 hover:bg-purple-600 px-6 py-2 rounded-lg transition-colors duration-300 hidden">Next Question</button>
+                </div>
+            </div>
+             <button id="quiz-back-to-menu" class="mt-6 bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-lg transition-colors duration-300">Back to Menu</button>
+        </div>
+        
+        <!-- Timeline View -->
+        <div id="timeline-view" class="hidden">
+            <h2 id="timeline-title" class="text-3xl font-bold text-center mb-6 text-purple-400">The Historian's Scroll</h2>
+            <div id="timeline-question-container">
+                <p id="timeline-instruction" class="text-lg text-center mb-4">Tap the events below to place them in the correct chronological order.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-center">Unordered Events</h3>
+                        <div id="unordered-events" class="bg-gray-800 p-4 rounded-lg space-y-2"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-center">Your Timeline (Tap to Add)</h3>
+                        <div id="player-timeline" class="bg-gray-800 p-4 rounded-lg space-y-2 min-h-[200px]"></div>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                     <button id="submit-timeline-btn" class="bg-purple-700 hover:bg-purple-600 px-8 py-3 rounded-lg transition-colors duration-300 text-lg">Submit</button>
+                </div>
+            </div>
+            <div id="timeline-feedback-container" class="hidden mt-8">
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-center">Your Attempt</h3>
+                        <div id="feedback-player-timeline" class="bg-gray-800 p-4 rounded-lg space-y-2"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-center">Correct Timeline</h3>
+                        <div id="feedback-correct-timeline" class="bg-gray-800 p-4 rounded-lg space-y-2"></div>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <button id="timeline-next-btn" class="bg-purple-700 hover:bg-purple-600 px-8 py-3 rounded-lg transition-colors duration-300 text-lg">Next Challenge</button>
+                </div>
+            </div>
+             <button id="timeline-back-to-menu" class="mt-6 bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-lg transition-colors duration-300">Back to Menu</button>
+        </div>
+
+
+        <!-- Flashcard View -->
+        <div id="flashcard-view" class="hidden">
+             <h2 class="text-3xl font-bold text-center mb-6 text-purple-400">Flashcard Study</h2>
+             <div class="max-w-2xl mx-auto">
+                <div class="flashcard-container mb-6">
+                    <div id="flashcard" class="flashcard">
+                        <div id="flashcard-front" class="flashcard-face bg-gray-800 rounded-lg shadow-lg"></div>
+                        <div id="flashcard-back" class="flashcard-face flashcard-back bg-purple-800 rounded-lg shadow-lg"></div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mb-4">
+                    <button id="prev-card-btn" class="bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-lg transition-colors duration-300">Previous</button>
+                    <div id="card-counter" class="text-lg"></div>
+                    <button id="next-card-btn" class="bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-lg transition-colors duration-300">Next</button>
+                </div>
+                 <button id="flashcard-back-to-menu" class="mt-6 w-full bg-purple-700 hover:bg-purple-600 px-6 py-2 rounded-lg transition-colors duration-300">Back to Menu</button>
+             </div>
+        </div>
+
+    </div>
+
+    <!-- Modals -->
+    <div id="welcome-modal" class="modal-overlay hidden">
+        <div class="modal-content bg-gray-800 p-8 rounded-lg shadow-2xl max-w-lg w-full text-center">
+            <h2 class="text-3xl font-bold mb-4 text-purple-400">Welcome!</h2>
+            <p class="text-lg mb-6">This is "The Pfalz: A Wine Master's Challenge," an interactive game to help you master the intricacies of this fascinating German wine region. All questions are based on the provided research document. Good luck!</p>
+            <button id="close-welcome-modal" class="bg-purple-700 hover:bg-purple-600 px-6 py-2 rounded-lg transition-colors duration-300">Let's Begin</button>
+        </div>
+    </div>
+
+    <div id="instruction-modal" class="modal-overlay hidden">
+        <div class="modal-content bg-gray-800 p-8 rounded-lg shadow-2xl max-w-lg w-full">
+            <h2 id="instruction-title" class="text-3xl font-bold mb-4 text-purple-400 text-center"></h2>
+            <p id="instruction-text" class="text-lg mb-6 text-center"></p>
+            <div class="text-center">
+                <button id="start-module-btn" class="bg-purple-700 hover:bg-purple-600 px-6 py-2 rounded-lg transition-colors duration-300">Start Challenge</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="flashcard-selection-modal" class="modal-overlay hidden">
+        <div class="modal-content bg-gray-800 p-8 rounded-lg shadow-2xl max-w-lg w-full">
+            <h2 class="text-3xl font-bold mb-4 text-purple-400 text-center">Build Your Deck</h2>
+            <p class="text-lg mb-6 text-center">Select the topics you want to study.</p>
+            <div id="flashcard-topics" class="space-y-3 mb-6">
+                <!-- Topics will be injected here -->
+            </div>
+            <div class="text-center">
+                <button id="start-flashcard-session-btn" class="bg-purple-700 hover:bg-purple-600 px-6 py-2 rounded-lg transition-colors duration-300">Start Studying</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="end-game-modal" class="modal-overlay hidden">
+        <div class="modal-content bg-gray-800 p-8 rounded-lg shadow-2xl max-w-lg w-full text-center">
+            <h2 class="text-3xl font-bold mb-4 text-purple-400">Module Complete!</h2>
+            <p id="end-game-score" class="text-2xl mb-6"></p>
+            <p class="text-lg mb-6">Great job! Play again to get a new set of questions and solidify your knowledge.</p>
+            <button id="end-game-back-to-menu" class="bg-purple-700 hover:bg-purple-600 px-6 py-2 rounded-lg transition-colors duration-300">Main Menu</button>
+        </div>
+    </div>
+
+    <div id="ai-settings-modal" class="modal-overlay hidden">
+        <div class="modal-content bg-gray-800 p-8 rounded-lg shadow-2xl max-w-lg w-full">
+            <h2 class="text-3xl font-bold mb-4 text-purple-400">AI Settings</h2>
+            <p class="mb-4">To use the AI-powered features, please enter your Google AI Studio API key. You can get a key at <a href="httpsaistudio.google.com/app/apikey" target="_blank" class="text-purple-400 hover:underline">aistudio.google.com/app/apikey</a>.</p>
+            <p class="text-sm text-yellow-400 mb-4">Security Reminder: Treat your API key like a password. Do not share it publicly.</p>
+            <input type="password" id="api-key-input" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 mb-4 text-white" placeholder="Enter your API key">
+            <div class="flex justify-end space-x-4">
+                <button id="cancel-ai-settings" class="bg-gray-600 hover:bg-gray-500 px-6 py-2 rounded-lg transition-colors duration-300">Cancel</button>
+                <button id="save-ai-settings" class="bg-purple-700 hover:bg-purple-600 px-6 py-2 rounded-lg transition-colors duration-300">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        // All questions and data are derived exclusively from the provided research document.
+        const gameData = {
+            historian: {
+                title: "The Historian's Scroll",
+                instructions: "Put the historical events in the correct chronological order, from earliest to most recent. Tap an event to add it to your timeline.",
+                questions: [
+                    {
+                        prompt: "Arrange these key events in the Pfalz's early history.",
+                        events: [
+                            { text: "Viticulture revitalized by monasteries after Roman withdrawal.", date: "7th Century" },
+                            { text: "Speyer Wine Bottle sealed, representing Roman-era winemaking.", date: "c. 325-350 AD" },
+                            { text: "Earliest evidence of cultivated vines in the Pfalz region.", date: "c. 50 AD" },
+                            { text: "First documented mentions of specific vineyard names (Lagen).", date: "12th-13th Centuries" }
+                        ]
+                    },
+                    {
+                        prompt: "Order the events related to the political and legal formation of the modern Pfalz.",
+                        events: [
+                            { text: "The name 'Rheinpfalz' is legally changed to 'Pfalz'.", date: "1995" },
+                            { text: "The Pfalz is incorporated into the French state, leading to secularization of church vineyards.", date: "1801" },
+                            { text: "The Congress of Vienna places the Pfalz under the control of the Kingdom of Bavaria.", date: "1816" },
+                             { text: "The Thirty Years' War severely disrupts the region's development.", date: "1618-1648" }
+                        ]
+                    },
+                    {
+                        prompt: "Sequence the key moments in the development of the Pfalz's quality hierarchy.",
+                        events: [
+                            { text: "The VDP's forerunner is established in Neustadt to protect 'Naturwein'.", date: "1908" },
+                            { text: "The Royal Bavarian Vineyard Classification map is created, a historic attempt at site classification.", date: "1828" },
+                            { text: "The German Wine Act of 1971 establishes a quality system based on must weight.", date: "1971" },
+                            { text: "The VDP formally adopts its modern, origin-based classification pyramid.", date: "2012" }
+                        ]
+                    },
+                    {
+                        prompt: "Arrange these milestones related to famous Pfalz producers and cultural events.",
+                        events: [
+                            { text: "The Hambach Festival, the 'cradle of German democracy', takes place.", date: "1832" },
+                            { text: "The 'modern quality revolution' begins, shifting focus to dry wines.", date: "1980s" },
+                            { text: "Pierre Jordan founds the estate that would become Bassermann-Jordan, pioneering estate bottling.", date: "1718" },
+                            { text: "The legendary 'comet vintage' cements the fame of Pfalz Riesling.", date: "1811" }
+                        ]
+                    },
+                    {
+                        prompt: "Order the implementation of key legal and organizational structures in German wine.",
+                        events: [
+                            { text: "The VDP introduces its own stringent classification for Sekt.", date: "2018" },
+                            { text: "A new German wine law is passed, formally adopting an origin-based hierarchy.", date: "2021" },
+                            { text: "The German Wine Route (Deutsche Weinstraße) is officially established.", date: "1935" },
+                            { text: "The new German wine law, codifying 'Grosses Gewächs' into public law, will be fully implemented.", date: "2026" }
+                        ]
+                    }
+                ]
+            },
+            terroir: {
+                title: "The Terroir Architect",
+                instructions: "Answer 10 multiple-choice questions about the geology, geography, and climate of the Pfalz.",
+                questions: [
+                    { q: "What geological event is primarily responsible for the immense soil diversity in the Pfalz?", a: "The collapse of the Upper Rhine Graben", o: ["The last Ice Age", "Volcanic eruptions in the Eifel", "The formation of the Alps"] },
+                    { q: "Which mountain range creates a critical rain shadow effect, protecting the Pfalz vineyards?", a: "Haardt Mountains", o: ["Black Forest", "Hunsrück Mountains", "Taunus Mountains"] },
+                    { q: "What is the most prevalent parent rock in the famed villages of the Mittelhaardt, like Forst and Deidesheim?", a: "Buntsandstein (Colored Sandstone)", o: ["Muschelkalk (Shell Limestone)", "Basalt", "Slate"] },
+                    { q: "The dark, volcanic rock found in top sites like Forster Pechstein is known as:", a: "Basalt", o: ["Granite", "Gneiss", "Marl"] },
+                    { q: "Which soil type is known for producing powerful, mineral-driven Rieslings with smoky notes and tropical fruit aromas?", a: "Basalt", o: ["Loess", "Buntsandstein", "Muschelkalk"] },
+                    { q: "The Pfalz's climate is most similar to which neighboring French wine region?", a: "Alsace", o: ["Burgundy", "Champagne", "Loire Valley"] },
+                    { q: "What is the approximate Growing Degree Days (GDD) value for the Pfalz, placing it in Winkler Region I?", a: "1375 GDD", o: ["950 GDD", "1600 GDD", "1850 GDD"] },
+                    { q: "Which of these is the most pressing and growing viticultural risk in the Pfalz due to climate change?", a: "Drought Stress", o: ["Excessive Rainfall", "Hailstorms", "Late Bud Break"] },
+                    { q: "The Südliche Weinstraße is considered 'Burgundy country' due to a higher prevalence of which soil type?", a: "Muschelkalk (Shell Limestone)", o: ["Buntsandstein (Colored Sandstone)", "Red Slate", "Volcanic Tuff"] },
+                    { q: "What is the typical elevation range for vineyards in the Pfalz?", a: "120 to 250 meters", o: ["300 to 500 meters", "50 to 100 meters", "Over 500 meters"] },
+                    { q: "The fine-grained, calcareous silt deposited by wind after the last ice age is called:", a: "Loess", o: ["Alluvium", "Marl", "Clay"] },
+                    { q: "Which village is home to the legendary basalt-soil vineyards of Pechstein, Kirchenstück, and Jesuitengarten?", a: "Forst", o: ["Deidesheim", "Wachenheim", "Kallstadt"] },
+                    { q: "The Pfalz is officially divided into two districts (Bereiche): the Mittelhaardt-Deutsche Weinstraße and the:", a: "Südliche Weinstraße", o: ["Obere Weinstraße", "Rheinterrasse", "Wonnegau"] },
+                    { q: "Compared to the Mosel, Pfalz Rieslings are typically:", a: "Richer and fuller-bodied", o: ["Lighter and more delicate", "Higher in acidity", "Lower in alcohol"] },
+                    { q: "The 'rain shadow' effect in the Pfalz results in:", a: "Lower rainfall and more sunshine", o: ["Higher rainfall and less sunshine", "Colder temperatures", "More frequent hailstorms"] },
+                    { q: "Which soil type is composed of fossilized marine shells and is ideal for Pinot varieties?", a: "Muschelkalk (Shell Limestone)", o: ["Buntsandstein (Colored Sandstone)", "Keuper Marl", "Rotliegend"] },
+                    { q: "The process of vineyard restructuring involving regrading slopes and consolidating parcels is known as:", a: "Flurbereinigung", o: ["Einzellage", "Gutsabfüllung", "Terroir-Management"] },
+                    { q: "What is the primary mineral component of Muschelkalk soil?", a: "Calcium Carbonate (Calcite)", o: ["Silica", "Iron Oxide", "Quartz"] },
+                    { q: "The reddish color of some Buntsandstein soils is due to high concentrations of:", a: "Iron oxide", o: ["Copper", "Magnesium", "Potassium"] },
+                    { q: "Which viticultural risk was particularly severe in the 2017 vintage, significantly reducing yields?", a: "Spring Frost", o: ["Drought", "Downy Mildew", "Heatwaves"] },
+                    { q: "How does the porosity of Buntsandstein soil influence the style of Riesling grown on it?", a: "It forces roots deep for water, concentrating flavor", o: ["It retains excess water, creating dilute wines", "It has high nutrients, leading to vigorous growth", "It stays cool, preventing full ripeness"] },
+                    { q: "The dual climatic character of the Pfalz (Winkler Region I but warm) is key to its ability to produce what?", a: "Both high-acidity Riesling and ripe Spätburgunder", o: ["Only sweet dessert wines", "Only light-bodied red wines", "Ice wine consistently every year"] },
+                    { q: "Why is the Haardt mountain range's connection to the Vosges significant?", a: "It shows they are part of the same geological formation creating a long rain shadow", o: ["It means they share the same river system", "It dictates the political boundary with France", "It has no viticultural significance"] },
+                    { q: "A wine from the Kallstadter Saumagen is likely to show a distinct saline or chalky minerality due to what soil?", a: "Muschelkalk", o: ["Buntsandstein", "Basalt", "Loess"] },
+                    { q: "What is the primary viticultural advantage of Basalt soil?", a: "It is an exceptional heat accumulator", o: ["It has naturally low pH", "It is very easy to work with machinery", "It prevents phylloxera"] },
+                    { q: "If a producer is struggling with drought stress, which soil type would present the biggest challenge?", a: "Buntsandstein", o: ["Loess", "Clay", "Basalt"] },
+                    { q: "The term 'Bodengeschmack' (taste of the soil) used by critics for Pfalz Riesling refers to what quality?", a: "A savory, textural, and saline character", o: ["A pronounced fruity aroma", "A high level of residual sugar", "A smoky character from new oak"] },
+                    { q: "The geological distinction between the Mittelhaardt and Südliche Weinstraße primarily explains what?", a: "Why the Mittelhaardt excels with Riesling and the Südliche with Pinots", o: ["Why the Mittelhaardt is warmer than the Südliche", "Why irrigation is only used in the Mittelhaardt", "Why cooperatives only exist in the Südliche"] },
+                    { q: "Which viticultural risk was most responsible for the difficult, low-yield 2016 vintage?", a: "Extreme mildew pressure from a wet spring", o: ["Widespread drought from a hot summer", "Severe late spring frosts", "Hail damage across the region"] },
+                    { q: "The location of the best Pfalz vineyards on the eastern foothills of the Haardt provides what key benefit?", a: "Excellent sun exposure", o: ["Protection from harsh afternoon sun", "Access to water from the Rhine", "Cooler overall temperatures"] },
+                    { q: "Which soil type is generally associated with the fruitiest, most accessible wines of the Pfalz?", a: "Loess and Loam", o: ["Basalt", "Muschelkalk", "Buntsandstein"] },
+                    { q: "The fracturing of the limestone bedrock in Muschelkalk soils provides what advantage during dry periods?", a: "It allows vine roots to access deep water reserves", o: ["It causes the soil to crumble, releasing nutrients", "It drains excess water away from the roots", "It reflects sunlight back onto the grapes"] },
+                    { q: "A wine described as having notes of peach, apricot, and a lean, mineral-driven structure likely comes from which soil type?", a: "Buntsandstein", o: ["Muschelkalk", "Basalt", "Clay"] },
+                    { q: "The increasing adoption of irrigation in the Pfalz is a direct response to what climatic trend?", a: "More frequent and intense summer heat and drought", o: ["Colder and longer winters", "Higher humidity during the growing season", "Increased rainfall in spring"] },
+                    { q: "The geological patchwork of the Pfalz is a key feature it shares with which other major wine region?", a: "Alsace", o: ["Burgundy", "Mosel", "Bordeaux"] },
+                    { q: "What is the primary reason that low-lying vineyard areas are more susceptible to spring frosts?", a: "They are 'frost pockets' with poor air drainage", o: ["They are closer to rivers which radiate cold", "Their soils retain less heat", "Their vines bud earlier than those on slopes"] },
+                ]
+            },
+            ampelographer: {
+                title: "The Ampelographer's Challenge",
+                instructions: "Answer 10 multiple-choice questions about the grape varieties of the Pfalz.",
+                questions: [
+                    { q: "What is the most planted grape variety in the Pfalz, occupying nearly 25% of the vineyard area?", a: "Riesling", o: ["Dornfelder", "Müller-Thurgau", "Spätburgunder"], subjectType: 'grape', subjectName: 'Riesling' },
+                    { q: "Which red grape is considered the most prestigious in the Pfalz and has seen its acreage triple since the 1990s?", a: "Spätburgunder", o: ["Dornfelder", "Portugieser", "Lemberger"], subjectType: 'grape', subjectName: 'Spätburgunder' },
+                    { q: "DNA analysis has shown that Riesling is a crossing between Gouais Blanc and a hybrid of a wild vine and which other variety?", a: "Traminer", o: ["Silvaner", "Elbling", "Chasselas"] },
+                    { q: "Grauburgunder and Weissburgunder are color mutations of which grape variety?", a: "Spätburgunder", o: ["Riesling", "Traminer", "Dornfelder"] },
+                    { q: "Which successful German crossing is the second most planted grape in the Pfalz, prized for its deep color and soft tannins?", a: "Dornfelder", o: ["Kerner", "Scheurebe", "Regent"], subjectType: 'grape', subjectName: 'Dornfelder' },
+                    { q: "The French 'Dijon' clones of Spätburgunder are prized over traditional German clones for producing wines with:", a: "Greater structure and complexity", o: ["Higher yields and fruitier notes", "Lower alcohol and lighter body", "Resistance to drought"] },
+                    { q: "Which viticultural characteristic of Riesling makes it well-suited to the long, sunny autumns in the Pfalz?", a: "It is a late-ripening variety", o: ["It is an early-ripening variety", "It has very thick skins", "It is resistant to botrytis"] },
+                    { q: "Which grape variety is NOT currently authorized for VDP.Grosse Lage bottlings in the Pfalz?", a: "Dornfelder", o: ["Riesling", "Spätburgunder", "Weissburgunder"] },
+                    { q: "What is the German name for Pinot Blanc?", a: "Weissburgunder", o: ["Grauburgunder", "Spätburgunder", "Schwarzriesling"], subjectType: 'grape', subjectName: 'Weissburgunder' },
+                    { q: "Which traditional, early-ripening red grape typically yields light-bodied red and rosé wines for early consumption?", a: "Portugieser", o: ["Lemberger", "Trollinger", "Dornfelder"] },
+                    { q: "The thin skins and tightly packed clusters of Spätburgunder make it highly susceptible to what?", a: "Botrytis bunch rot", o: ["Drought", "Frost", "Powdery mildew"] },
+                    { q: "What is the German name for Pinot Gris?", a: "Grauburgunder", o: ["Weissburgunder", "Spätburgunder", "Frühburgunder"], subjectType: 'grape', subjectName: 'Grauburgunder' },
+                    { q: "Riesling is known to be a half-sibling to which other famous European grape variety?", a: "Chardonnay", o: ["Cabernet Sauvignon", "Syrah", "Sangiovese"] },
+                    { q: "Which aromatic variety, though statistically insignificant, has eloquent partisans in the Pfalz and can produce impressive sweet wines?", a: "Scheurebe", o: ["Müller-Thurgau", "Bacchus", "Kerner"], subjectType: 'grape', subjectName: 'Scheurebe' },
+                    { q: "The 'Burgundianization' of Pfalz Spätburgunder is partly driven by the planting of which type of clones?", a: "French 'Dijon' clones", o: ["Geisenheim clones", "Freiburger clones", "Weinsberg clones"] },
+                    { q: "A producer wanting to enhance concentration and rot resistance in Riesling would likely select clones with what characteristics?", a: "Smaller berries and looser clusters", o: ["Larger berries and tighter clusters", "Higher sugar content at harvest", "Thicker skins"] },
+                    { q: "Why is Spätburgunder particularly well-suited to the Muschelkalk soils of the Südliche Weinstraße?", a: "The limestone soil provides excellent drainage and promotes elegance", o: ["The soil retains water, protecting against drought", "The soil's high iron content adds color", "The soil is acidic, which Pinot Noir prefers"] },
+                    { q: "The late-budding nature of Riesling provides a natural, albeit partial, defense against what major viticultural risk?", a: "Spring frost", o: ["Drought", "Botrytis", "Sunburn"] },
+                    { q: "If a winemaker wants to produce a full-bodied, textural white wine often aged in oak, which Pfalz grape would be a likely choice?", a: "Grauburgunder", o: ["Müller-Thurgau", "Portugieser", "Silvaner"] },
+                    { q: "The historical dominance of Riesling in the Mittelhaardt is a direct reflection of its suitability to which soil types?", a: "Sandstone and basalt", o: ["Limestone and clay", "Loess and loam", "Slate and gravel"] },
+                    { q: "What is the primary winemaking challenge when working with Dornfelder?", a: "Managing its deep color and soft tannins to avoid an overly simple wine", o: ["Achieving sufficient ripeness", "Retaining enough acidity", "Controlling its naturally high alcohol"] },
+                    { q: "The genetic instability of Spätburgunder is best demonstrated by what phenomenon?", a: "The existence of its color mutations, Pinot Gris and Pinot Blanc", o: ["Its resistance to phylloxera", "Its consistent ripening pattern", "Its uniform berry size"] },
+                    { q: "What is the dominant, modern vine training system used in the Pfalz?", a: "Guyot system with VSP", o: ["Gobelet (bush vine)", "Pergola", "Lyre system"] },
+                    { q: "The regional practice of training fruiting canes in an arch (*Halbbogen*) is designed to do what?", a: "Improve canopy management for better sun and air exposure", o: ["Increase yields", "Make mechanical harvesting easier", "Protect the vines from wind"] },
+                    { q: "The historical training system *Pfälzer Kammertbau* is significant because:", a: "It is believed to have Roman origins, showing ancient traditions", o: ["It is the most efficient system for modern viticulture", "It is required for all GG vineyards", "It was designed for sweet wine production"] },
+                ]
+            },
+            lawmaker: {
+                title: "The Lawmaker's Desk",
+                instructions: "Answer 10 multiple-choice questions about the wine laws and classifications of the Pfalz.",
+                questions: [
+                    { q: "What was the fundamental philosophical flaw of the 1971 German Wine Law that the VDP sought to correct?", a: "It based quality on ripeness (must weight) rather than origin (terroir)", o: ["It outlawed chaptalization for all wines", "It set yield limits that were too low", "It only recognized Riesling as a quality grape"] },
+                    { q: "What does the VDP term 'Grosses Gewächs' (GG) signify?", a: "A dry wine from a top-quality 'Grosse Lage' vineyard", o: ["A sweet wine with noble rot", "A village-level wine", "A sparkling wine aged for 36 months"] },
+                    { q: "Chaptalization (the addition of sugar) is strictly forbidden for which category of German wine?", a: "Prädikatswein", o: ["Qualitätswein", "Landwein", "Deutscher Wein"] },
+                    { q: "What is the maximum permitted yield for a VDP.Grosse Lage wine, and how does it compare to the standard legal limit for Qualitätswein?", a: "50 hl/ha, which is less than half the legal limit", o: ["75 hl/ha, which is slightly less than the legal limit", "105 hl/ha, which is the same as the legal limit", "45 hl/ha, which is about one-third of the legal limit"] },
+                    { q: "Which document from 1828 is a seminal, historical precedent for the terroir-based classification in the Pfalz?", a: "The Royal Bavarian Vineyard Classification", o: ["The Napoleonic Code", "The German Purity Law (Reinheitsgebot)", "The Treaty of Westphalia"] },
+                    { q: "What is the minimum must weight for a Riesling to be classified as 'Spätlese'?", a: "85° Oechsle", o: ["73° Oechsle", "92° Oechsle", "120° Oechsle"] },
+                    { q: "The new German wine law, fully implemented in 2026, formally adopts a hierarchy based on:", a: "Origin (like Burgundy)", o: ["Ripeness (the traditional system)", "Producer reputation", "Aging requirements"] },
+                    { q: "What does the term 'Gutsabfüllung' on a label mean?", a: "Estate-bottled", o: ["Old vines", "Single vineyard", "Dry wine"] },
+                    { q: "For a red VDP.Grosses Gewächs wine, what is the minimum aging requirement before release?", a: "2 years (min. 12 months in oak)", o: ["1 year", "6 months", "3 years"] },
+                    { q: "What does 'AP Nr.' on a wine label stand for and signify?", a: "Amtliche Prüfungsnummer, a quality control certification", o: ["Anbaugebiet Pfalz Nummer, a regional tax code", "Alkohol Potenzial Nummer, the potential alcohol", "Auslese Prädikat Nummer, the ripeness level"] },
+                    { q: "Which term is the VDP equivalent of a 'Premier Cru' vineyard?", a: "VDP.Erste Lage", o: ["VDP.Ortswein", "VDP.Gutswein", "VDP.Grosse Lage"] },
+                    { q: "What is the German term for a dry wine?", a: "Trocken", o: ["Halbtrocken", "Feinherb", "Lieblich"] },
+                    { q: "Which Prädikat level requires the highest minimum must weight?", a: "Trockenbeerenauslese (TBA)", o: ["Beerenauslese (BA)", "Auslese", "Eiswein"] },
+                    { q: "The VDP was originally founded to champion and protect the concept of 'Naturwein', which meant:", a: "Wine made without chaptalization", o: ["Wine made with organic grapes", "Wine made with no sulfur additions", "Wine aged in natural caves"] },
+                    { q: "A wine labeled 'Pfalz Sekt b.A.' indicates what?", a: "A quality sparkling wine from the Pfalz region", o: ["A sweet sparkling wine", "A tank-method sparkling wine", "A rosé sparkling wine"] },
+                    { q: "How does the VDP's aging requirement for white GG wines differ from the standard PDO law?", a: "The VDP mandates about a year of aging; the PDO has no requirement", o: ["The VDP requires less aging than the PDO", "The VDP requires stainless steel; the PDO requires oak", "There is no difference"] },
+                    { q: "What is the key difference between producing a Beerenauslese and an Eiswein?", a: "BA requires noble rot (botrytis), while Eiswein requires healthy frozen grapes", o: ["Eiswein has a higher minimum must weight than BA", "BA must be aged longer than Eiswein", "Eiswein can be chaptalized, but BA cannot"] },
+                    { q: "The term 'VDP.Ortswein' on a label, such as 'Forster Riesling', signifies that the grapes come from where?", a: "From high-quality vineyards within the named village of Forst", o: ["From anywhere in the Pfalz region", "From the single best vineyard in Forst", "From a cooperative based in Forst"] },
+                    { q: "Why was the 'modernist' approach of using temperature-controlled stainless steel tanks adopted in the Pfalz?", a: "To produce wines of great purity and preserve primary fruit aromas", o: ["To add texture and complexity through micro-oxygenation", "Because it is required by law for Qualitätswein", "To speed up the fermentation process for bulk wine"] },
+                    { q: "The 'traditionalist' use of large, old *Stückfass* casks for Riesling is intended to achieve what stylistic goal?", a: "Build texture and complexity through micro-oxygenation without adding oak flavor", o: ["Impart strong vanilla and toast flavors to the wine", "Keep the wine as fresh and fruity as possible", "Accelerate the aging process"] },
+                    { q: "The upcoming 2026 German wine law reform is significant because it:", a: "Codifies a vineyard hierarchy (GG, EG) into public law for all producers", o: ["Abolishes the Prädikat system entirely", "Outlaws the use of the term 'Trocken'", "Requires all German wines to be estate-bottled"] },
+                    { q: "What is the minimum lees aging for a top-tier VDP.Sekt.Prestige, and what famous wine style does this align with?", a: "36 months, aligning with vintage Champagne", o: ["9 months, aligning with Cava Reserva", "15 months, aligning with Franciacorta", "12 months, aligning with Crémant"] },
+                    { q: "If a Pfalz wine is labeled 'Qualitätswein' and has 12% ABV, what winemaking technique was legally permitted that would be forbidden for a 'Prädikatswein'?", a: "Chaptalization", o: ["Acidification", "Aging in new oak barrels", "Use of cultured yeasts"] },
+                    { q: "The use of Burgundian *barriques* for top Pfalz Rieslings by producers like Von Winning is a 'convergence' approach intended to do what?", a: "Build texture and longevity, similar to Grand Cru Burgundy", o: ["Make the Riesling taste like Chardonnay", "Reduce the acidity of the wine", "Satisfy a legal requirement for GG wines"] },
+                    { q: "What is the legal minimum planting density in the Pfalz?", a: "2,200 vines per hectare", o: ["5,000 vines per hectare", "1,500 vines per hectare", "There is no legal minimum"] },
+                ]
+            },
+            gastronome: {
+                title: "The Gastronome's Table",
+                instructions: "Answer 10 multiple-choice questions about the food, drink, and pairings of the Pfalz. After you answer, an explanation will appear. You can then choose to learn more with AI.",
+                questions: [
+                    { q: "What is the undisputed signature dish of the Pfalz, a savory pudding cooked in a pig's stomach?", a: "Pfälzer Saumagen", o: ["Leberknödel", "Bratwurst", "Dampfnudeln"], subjectType: 'dish', subjectName: 'Pfälzer Saumagen', explanation: "Pfälzer Saumagen is the iconic dish of the Palatinate. It's a savory pudding made from lean pork, diced potatoes, and sausage meat, seasoned with marjoram, nutmeg, and pepper, and cooked in a pig's stomach." },
+                    { q: "A dry (Trocken) Riesling GG is the classic pairing for Pfälzer Saumagen primarily because:", a: "Its high acidity cuts through the fat of the pork", o: ["Its sweetness complements the sauerkraut", "Its low alcohol matches the light dish", "Its red fruit notes match the seasoning"], subjectType: 'wine_pairing', subjectName: 'Pfälzer Saumagen', explanation: "The structure of Pfalz wines is key. A powerful, dry Riesling has the necessary high acidity to cut through the richness and fat of the Saumagen, while its full body matches the weight of the dish, creating a balanced and classic pairing." },
+                    { q: "What is the 'Pfälzer Dreifaltigkeit' (Palatinate Trinity)?", a: "A platter of Saumagen, Bratwurst, and Leberknödel", o: ["A blend of three grape varieties", "A trio of sweet, savory, and sour sauces", "A traditional three-day festival"], subjectType: 'dish', subjectName: 'Pfälzer Dreifaltigkeit', explanation: "The 'Palatinate Trinity' is a celebratory platter that showcases the three pillars of the region's hearty charcuterie: a slice of fried Saumagen, a Bratwurst (pork sausage), and a Leberknödel (liver dumpling)." },
+                    { q: "The quintessential autumn dish 'Grumbeersupp mit Quetschekuche' combines potato soup with what?", a: "Plum cake", o: ["Onion tart", "Apple strudel", "Cherry pie"], subjectType: 'dish', subjectName: 'Grumbeersupp mit Quetschekuche', explanation: "This dish perfectly illustrates the local penchant for combining sweet and savory. A hearty potato soup (*Grumbeersupp*) is served alongside a slice of fresh plum cake (*Quetschekuche*), and they are often eaten together." },
+                    { q: "What is a 'Dubbeglas'?", a: "A 0.5-liter dimpled glass for Weinschorle", o: ["A traditional wine barrel", "A type of fermentation vessel", "A special pruning knife"], subjectType: 'place', subjectName: 'Dubbeglas', explanation: "The *Dubbeglas* is a distinctive 0.5-liter glass with dimples, which is the traditional vessel for serving *Weinschorle*, the region's popular wine spritzer." },
+                    { q: "What is 'Weinschorle', and why is it so popular in the Pfalz?", a: "A wine spritzer, popular for creating a refreshing, lower-alcohol drink from powerful wines", o: ["A sweet mulled wine, served during winter festivals", "A local spirit distilled from grape pomace", "A non-alcoholic grape juice"], subjectType: 'liqueur', subjectName: 'Weinschorle', explanation: "*Weinschorle* is a simple but culturally iconic spritzer of wine (usually Riesling) and sparkling mineral water. Its popularity stems from the desire to create a refreshing, thirst-quenching, and lower-alcohol beverage from the region's characteristically powerful wines." },
+                    { q: "Which local ingredient, harvested from the Palatinate Forest, is a beloved seasonal specialty?", a: "Sweet Chestnuts (Keschde)", o: ["Wild Mushrooms", "Truffles", "Asparagus"], subjectType: 'ingredient', subjectName: 'Sweet Chestnuts', explanation: "Sweet chestnuts, known locally as *Keschde* or *Maronen*, are harvested from the Palatinate Forest and are a beloved seasonal specialty, often roasted and sold at markets or used in game dishes." },
+                    { q: "A powerful, structured Spätburgunder from a Grosse Lage is the ideal pairing for which type of dish?", a: "Roasted game with chestnuts", o: ["Light salads", "Spicy Asian cuisine", "Delicate fish"], subjectType: 'wine_pairing', subjectName: 'Roasted game with chestnuts', explanation: "The earthy notes, red fruit character, and firm tannic structure of a top-tier Pfalz Spätburgunder are a perfect complement to the gamy flavors of dishes like wild boar or venison, and can stand up to the richness of the dish." },
+                    { q: "What is 'Pfälzer Weinbrand'?", a: "A brandy with a protected geographical indication, distilled from local wines", o: ["A type of aromatized wine", "A cherry liqueur", "A beer brewed with grape must"], subjectType: 'spirit', subjectName: 'Pfälzer Weinbrand', explanation: "*Pfälzer Weinbrand* is a brandy with a protected geographical indication (GI). It must be distilled from local Pfalz wines, is typically aged in oak barrels, and bottled at a minimum of 38% ABV." },
+                    { q: "Dampfnudeln, a steamed yeast dumpling, can be served as a savory main course or as a dessert with what?", a: "A sweet vanilla or wine-based sauce", o: ["A spicy tomato sauce", "A cheese and herb filling", "A rich meat gravy"], subjectType: 'dish', subjectName: 'Dampfnudeln', explanation: "*Dampfnudeln* are versatile yeast dumplings. While they can be served as a savory main course with potato soup, they are also a popular dessert, served with a sweet vanilla or wine-based sauce." },
+                    { q: "What is the primary gastronomic principle behind pairing a dry Weissburgunder with savory Dampfnudeln?", a: "To provide a refreshing counterpoint without overpowering the delicate dough", o: ["To match the intensity of the dish with an equally intense wine", "To use the wine's sweetness to balance the saltiness of the crust", "To complement the yeast flavors with oak notes from the wine"], subjectType: 'wine_pairing', subjectName: 'Savory Dampfnudeln', explanation: "A textural white wine like Weissburgunder (Pinot Blanc) or Silvaner, with good body and moderate acidity, acts as a refreshing counterpoint to the savory version of Dampfnudeln. It cleanses the palate without overpowering the dumpling's delicate dough flavor." },
+                    { q: "What are *Flääschknepp*, and what is their traditional, piquant accompaniment?", a: "Substantial meat dumplings served with a horseradish sauce", o: ["Liver sausages served with mustard", "Fried potato pancakes served with applesauce", "Blood sausages served with onions"], subjectType: 'dish', subjectName: 'Flääschknepp', explanation: "*Flääschknepp* are hearty dumplings made from ground pork and beef. They are traditionally served with a piquant horseradish sauce, which provides a sharp contrast to the rich dumplings." },
+                    { q: "The term *Grumbeere* is the Palatinate dialect for what staple ingredient that is central to many local dishes?", a: "Potato", o: ["Onion", "Cabbage", "Pork"], subjectType: 'ingredient', subjectName: 'Potato (Grumbeere)', explanation: "*Grumbeere* is the local dialect for potato, a cornerstone of the Pfalz diet and a key ingredient in iconic dishes like *Pfälzer Saumagen* and *Grumbeersupp*." },
+                    { q: "The traditional pairing of Zwiebelkuchen (savory onion tart) with *Federweisser* (new wine) is a classic example of what?", a: "A seasonal pairing based on the autumn harvest", o: ["A pairing based on contrasting flavors", "A pairing designed for long-term aging", "A pairing dictated by local law"], subjectType: 'wine_pairing', subjectName: 'Zwiebelkuchen and Federweisser', explanation: "This is a quintessential seasonal pairing. *Federweisser* is the still-fermenting new wine available only in the autumn, at the same time savory onion tarts are traditionally made to celebrate the harvest." },
+                    { q: "What does the term *Obstwasser* refer to, and what is a common example from the region?", a: "A clear, unaged fruit brandy, such as *Kirschwasser* (from cherries)", o: ["A type of mineral water from a local spring", "A non-alcoholic sparkling fruit juice", "A fruit-flavored beer popular at festivals"], subjectType: 'spirit', subjectName: 'Obstwasser', explanation: "*Obstwasser* or *Obstbrand* are traditional clear spirits (brandies) distilled from the region's abundant fruit. Common examples include those made from cherries (*Kirschwasser*) or plums (*Zwetschgenwasser*)." },
+                    { q: "The overall robust and savory nature of Pfalz cuisine creates a symbiotic relationship with its wines, which generally possess what key characteristics?", a: "Full body, flavor intensity, and high acidity", o: ["Light body, delicate aromas, and low alcohol", "High residual sugar and low acidity", "Strong oak influence and soft tannins"], subjectType: 'wine_pairing', subjectName: 'Pfalz Cuisine', explanation: "The hearty, product-driven cuisine of the Pfalz requires wines with enough power and structure to not be overwhelmed. The region's wines, particularly dry Riesling and the Pinot varieties, provide the necessary body, flavor intensity, and acidity to stand up to and cut through the richness of the local food." },
+                    { q: "What does the term *naturtrüb* signify when seen on a local Pfalz beer label?", a: "The beer is unfiltered", o: ["The beer is brewed with local hops", "The beer is a dark lager style", "The beer has low alcohol content"], subjectType: 'ingredient', subjectName: 'Naturtrüb Beer', explanation: "*Naturtrüb* means 'naturally cloudy' and indicates that the beer is unfiltered. This is a common characteristic of traditional beer styles produced by local breweries in the Pfalz and throughout Germany." }
+                ]
+            },
+            critic: {
+                title: "The Critic's Corner",
+                instructions: "Answer 10 multiple-choice questions about the producers, vintages, and market context of the Pfalz.",
+                questions: [
+                    { q: "Which three historic estates are known as the 'three B's' of Deidesheim?", a: "Bassermann-Jordan, Bürklin-Wolf, and von Buhl", o: ["Becker, Bernhart, and Bergdolt", "Bassermann-Jordan, Becker, and Buhl", "Bürklin-Wolf, Buhl, and Bergdolt"] },
+                    { q: "Which producer is considered a pioneer of biodynamic viticulture in the Pfalz and was instrumental in re-introducing a Burgundian-style classification?", a: "Dr. Bürklin-Wolf", o: ["Koehler-Ruprecht", "Müller-Catoir", "Villa Wolf"], subjectType: 'producer', subjectName: 'Dr. Bürklin-Wolf' },
+                    { q: "How would a critic most accurately contrast the 2018 and 2021 vintages for Pfalz Riesling GG?", a: "2018 is powerful and fruit-driven; 2021 is filigreed with higher acidity", o: ["2018 is light and acidic; 2021 is ripe and powerful", "Both vintages are identical in style", "2018 was poor for Riesling; 2021 was excellent"] },
+                    { q: "Which producer, located on the Alsatian border, is widely regarded as a master of German Spätburgunder?", a: "Weingut Friedrich Becker", o: ["Ökonomierat Rebholz", "A. Christmann", "Von Winning"], subjectType: 'producer', subjectName: 'Weingut Friedrich Becker' },
+                    { q: "The 2014 vintage was particularly difficult in the Pfalz due to what primary factors?", a: "A wet August causing widespread rot and issues with drosophila flies", o: ["Severe frost that destroyed most of the crop", "Extreme heat and drought that shriveled the grapes", "A cool summer that prevented grapes from ripening"] },
+                    { q: "Which estate was reborn under winemaker Stephan Attmann, who uses Burgundian oak barrels for fermenting top Rieslings?", a: "Von Winning", o: ["Reichsrat von Buhl", "Pfeffingen", "Weingut Rings"], subjectType: 'producer', subjectName: 'Von Winning' },
+                    { q: "Which term do critics often use to describe the savory, textural, and saline quality of Pfalz Riesling?", a: "Bodengeschmack (taste of the soil)", o: ["Edelfäule (noble rot)", "Säure (acidity)", "Fruchtsüße (fruit sweetness)"] },
+                    { q: "Which producer is a standard-bearer for purity and terroir expression in the Südliche Weinstraße, known for bone-dry, long-lived Rieslings?", a: "Ökonomierat Rebholz", o: ["Dr. Bürklin-Wolf", "Villa Wolf", "Gerd Anselmann"], subjectType: 'producer', subjectName: 'Ökonomierat Rebholz' },
+                    { q: "The Königsbacher Idig Riesling GG, one of Germany's top dry whites, is the flagship wine of which producer?", a: "A. Christmann", o: ["Philipp Kuhn", "Weingut Rings", "Friedrich Becker"], subjectType: 'wine', subjectName: 'A. Christmann Königsbacher Idig Riesling GG' },
+                    { q: "Which of these producers is considered a 'Rising Star' who rapidly ascended to the top ranks of the VDP?", a: "Weingut Rings", o: ["Villa Wolf", "Bassermann-Jordan", "Koehler-Ruprecht"], subjectType: 'producer', subjectName: 'Weingut Rings' },
+                    { q: "What is the primary stylistic difference a taster would find between a top Riesling from the Pfalz and one from the Mosel?", a: "Pfalz Riesling is typically fuller-bodied and more powerful", o: ["Mosel Riesling has lower acidity", "Pfalz Riesling is always sweet", "Mosel Riesling is typically aged in new oak"] },
+                    { q: "The 'comet vintage' of 1811 was historically significant for cementing the reputation of which producer?", a: "Bassermann-Jordan", o: ["Dr. Bürklin-Wolf", "Koehler-Ruprecht", "Friedrich Becker"] },
+                    { q: "The 2010 vintage is characterized by wines that are:", a: "Light-bodied, with crystalline fruit and very high, racy acidity", o: ["Powerful, concentrated, and high in alcohol", "Soft, fruit-forward, and ready to drink young", "Marked by undesirable rot character"] },
+                    { q: "Which producer, owned by Ernst Loosen of the Mosel, is known as a 'Value Champion' in the Pfalz?", a: "Villa Wolf", o: ["Pfeffingen", "Gerd Anselmann", "A. Christmann"] },
+                    { q: "A critic comparing the 2015 and 2016 vintages would likely describe them as:", a: "2015 being powerful and concentrated, 2016 being elegant and classic", o: ["2015 being cool and acidic, 2016 being hot and ripe", "Two vintages of nearly identical character", "2015 being a poor vintage, 2016 being excellent"] },
+                    { q: "The revitalization of the Reichsrat von Buhl estate was notably influenced by the tenure of which former Bollinger chef de cave?", a: "Mathieu Kauffmann", o: ["Stephan Attmann", "Hans-Günter Schwarz", "Fritz Becker"] },
+                    { q: "The powerful, structured red wines of Philipp Kuhn are a hallmark of which part of the Pfalz?", a: "The northern Pfalz (Mittelhaardt)", o: ["The southern Pfalz (Südliche Weinstraße)", "The area bordering the Rhine", "The highest elevation sites"] },
+                    { q: "What is the defining characteristic of the 2012 vintage in the Pfalz?", a: "Exceptional purity and ripe acidity due to a long, cool season with no botrytis", o: ["High alcohol and power from a hot, dry summer", "Low quality due to widespread rain during harvest", "Very large quantities of simple, dilute wines"] },
+                    { q: "Weingut Eymann is gaining 'rising star' status for what reason?", a: "For exceptional single-vineyard Spätburgunder from a biodynamic estate", o: ["For producing the most affordable Riesling in the region", "For pioneering a new grape crossing", "For mastering the production of Eiswein"] },
+                    { q: "A wine from Ökonomierat Rebholz's Birkweiler Kastanienbusch vineyard would be expected to show intense minerality from what unique soil type?", a: "Red slate", o: ["Basalt", "Loess", "Pure limestone"] },
+                ]
+            },
+            flashcard: {
+                title: "Flashcard Study",
+                instructions: "First, select the topics you want to study to build your deck. Then, click on the card to flip it and reveal the answer. Use the buttons to navigate through your custom deck.",
+                // Flashcard data will be generated from the other modules
+            }
+        };
+
+        // --- APPLICATION STATE ---
+        let currentModule = null;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let quizQuestions = [];
+        let timelineQuestionIndex = 0;
+        let playerTimelineOrder = [];
+        
+        let flashcardDeck = [];
+        let currentCardIndex = 0;
+        
+        let apiKey = localStorage.getItem('geminiApiKey') || '';
+
+        // --- DOM ELEMENTS ---
+        const mainMenu = document.getElementById('main-menu-view');
+        const quizView = document.getElementById('quiz-view');
+        const timelineView = document.getElementById('timeline-view');
+        const flashcardView = document.getElementById('flashcard-view');
+
+        const welcomeModal = document.getElementById('welcome-modal');
+        const instructionModal = document.getElementById('instruction-modal');
+        const endGameModal = document.getElementById('end-game-modal');
+        const aiSettingsModal = document.getElementById('ai-settings-modal');
+        const flashcardSelectionModal = document.getElementById('flashcard-selection-modal');
+        const explanationContainer = document.getElementById('explanation-container');
+
+        // --- HELPER FUNCTIONS ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function showView(view) {
+            mainMenu.classList.add('hidden');
+            quizView.classList.add('hidden');
+            timelineView.classList.add('hidden');
+            flashcardView.classList.add('hidden');
+            view.classList.remove('hidden');
+        }
+
+        function showModal(modal) {
+            modal.classList.remove('hidden');
+        }
+
+        function hideModal(modal) {
+            modal.classList.add('hidden');
+        }
+
+        // --- MODAL & MENU LOGIC ---
+        function setupEventListeners() {
+            // Welcome Modal
+            if (!localStorage.getItem('welcomeShown')) {
+                showModal(welcomeModal);
+            }
+            document.getElementById('close-welcome-modal').addEventListener('click', () => {
+                hideModal(welcomeModal);
+                localStorage.setItem('welcomeShown', 'true');
+            });
+
+            // Main Menu Buttons
+            document.querySelectorAll('.module-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const moduleKey = button.dataset.module;
+                    currentModule = gameData[moduleKey];
+                    
+                    if (moduleKey === 'flashcard') {
+                        buildFlashcardSelectionModal();
+                        showModal(flashcardSelectionModal);
+                    } else {
+                        document.getElementById('instruction-title').textContent = currentModule.title;
+                        document.getElementById('instruction-text').textContent = currentModule.instructions;
+                        showModal(instructionModal);
+                    }
+                });
+            });
+            
+            // Back to menu buttons
+            document.getElementById('quiz-back-to-menu').addEventListener('click', () => showView(mainMenu));
+            document.getElementById('timeline-back-to-menu').addEventListener('click', () => showView(mainMenu));
+            document.getElementById('flashcard-back-to-menu').addEventListener('click', () => showView(mainMenu));
+
+
+            // Instruction Modal
+            document.getElementById('start-module-btn').addEventListener('click', () => {
+                hideModal(instructionModal);
+                if (currentModule.title === "The Historian's Scroll") {
+                    startTimelineChallenge();
+                } else {
+                    startQuiz();
+                }
+            });
+
+            // End Game Modal
+            document.getElementById('end-game-back-to-menu').addEventListener('click', () => {
+                hideModal(endGameModal);
+                showView(mainMenu);
+            });
+            
+            // AI Settings Modal
+            document.getElementById('ai-settings-btn').addEventListener('click', () => {
+                document.getElementById('api-key-input').value = apiKey;
+                showModal(aiSettingsModal);
+            });
+            document.getElementById('save-ai-settings').addEventListener('click', () => {
+                apiKey = document.getElementById('api-key-input').value;
+                localStorage.setItem('geminiApiKey', apiKey);
+                hideModal(aiSettingsModal);
+            });
+            document.getElementById('cancel-ai-settings').addEventListener('click', () => hideModal(aiSettingsModal));
+            
+            // Flashcard Modal
+             document.getElementById('start-flashcard-session-btn').addEventListener('click', () => {
+                const selectedTopics = Array.from(document.querySelectorAll('#flashcard-topics input:checked')).map(cb => cb.value);
+                if (selectedTopics.length > 0) {
+                    hideModal(flashcardSelectionModal);
+                    startFlashcardSession(selectedTopics);
+                } else {
+                    alert("Please select at least one topic to study.");
+                }
+            });
+        }
+
+        // --- QUIZ LOGIC ---
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            quizQuestions = shuffleArray([...currentModule.questions]).slice(0, 10);
+            document.getElementById('quiz-title').textContent = currentModule.title;
+            showView(quizView);
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const question = quizQuestions[currentQuestionIndex];
+            const questionText = document.getElementById('question-text');
+            const answerOptions = document.getElementById('answer-options');
+            const scoreTracker = document.getElementById('score-tracker');
+            const nextBtn = document.getElementById('next-question-btn');
+            const aiContainer = document.getElementById('ai-feature-container');
+
+            questionText.textContent = question.q;
+            answerOptions.innerHTML = '';
+            nextBtn.classList.add('hidden');
+            aiContainer.classList.add('hidden');
+            aiContainer.innerHTML = '';
+            explanationContainer.classList.add('hidden');
+            explanationContainer.innerHTML = '';
+
+
+            const options = shuffleArray([...question.o, question.a]);
+
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('w-full', 'bg-gray-700', 'hover:bg-purple-800', 'p-4', 'rounded-lg', 'transition-colors', 'duration-200', 'text-left');
+                button.addEventListener('click', () => selectAnswer(button, option, question.a, question));
+                answerOptions.appendChild(button);
+            });
+
+            scoreTracker.textContent = `Score: ${score}/${currentQuestionIndex}`;
+        }
+
+        function selectAnswer(button, selectedAnswer, correctAnswer, question) {
+            const answerButtons = document.querySelectorAll('#answer-options button');
+            let isCorrect = selectedAnswer === correctAnswer;
+
+            if (isCorrect) {
+                score++;
+                button.classList.remove('bg-gray-700', 'hover:bg-purple-800');
+                button.classList.add('bg-green-600');
+            } else {
+                button.classList.remove('bg-gray-700', 'hover:bg-purple-800');
+                button.classList.add('bg-red-600');
+            }
+
+            answerButtons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent === correctAnswer) {
+                     btn.classList.remove('bg-gray-700', 'hover:bg-purple-800');
+                     btn.classList.add('bg-green-600');
+                }
+            });
+
+            // Gastronome Module: Show explanation and contextual AI button
+            if (currentModule.title === "The Gastronome's Table" && question.explanation) {
+                explanationContainer.innerHTML = `<p class="text-gray-300 bg-gray-700 p-4 rounded-lg">${question.explanation}</p>`;
+                explanationContainer.classList.remove('hidden');
+                displayAiButton(question.subjectType, question.subjectName, isCorrect);
+            } else if (isCorrect && question.subjectType) {
+                // Other modules: Show AI button on correct answer
+                displayAiButton(question.subjectType, question.subjectName, isCorrect);
+            }
+
+
+            document.getElementById('score-tracker').textContent = `Score: ${score}/${currentQuestionIndex + 1}`;
+            document.getElementById('next-question-btn').classList.remove('hidden');
+        }
+
+        document.getElementById('next-question-btn').addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizQuestions.length) {
+                displayQuestion();
+            } else {
+                endQuiz();
+            }
+        });
+
+        function endQuiz() {
+            document.getElementById('end-game-score').textContent = `Your final score is ${score}/${quizQuestions.length}.`;
+            showModal(endGameModal);
+        }
+
+        // --- TIMELINE LOGIC ---
+        function startTimelineChallenge() {
+            timelineQuestionIndex = 0;
+            showView(timelineView);
+            displayTimelineQuestion();
+        }
+
+        function displayTimelineQuestion() {
+            playerTimelineOrder = [];
+            document.getElementById('timeline-question-container').classList.remove('hidden');
+            document.getElementById('timeline-feedback-container').classList.add('hidden');
+            
+            const question = gameData.historian.questions[timelineQuestionIndex];
+            document.getElementById('timeline-instruction').textContent = question.prompt;
+            
+            const unorderedContainer = document.getElementById('unordered-events');
+            const playerTimelineContainer = document.getElementById('player-timeline');
+            unorderedContainer.innerHTML = '';
+            playerTimelineContainer.innerHTML = '';
+
+            const events = shuffleArray([...question.events]);
+            events.forEach((event, index) => {
+                const eventEl = document.createElement('div');
+                eventEl.textContent = event.text;
+                eventEl.classList.add('bg-gray-700', 'p-3', 'rounded-lg', 'cursor-pointer', 'hover:bg-purple-800', 'transition-colors');
+                eventEl.dataset.text = event.text;
+                eventEl.addEventListener('click', () => moveEventToTimeline(eventEl));
+                unorderedContainer.appendChild(eventEl);
+            });
+        }
+
+        function moveEventToTimeline(eventElement) {
+            const playerTimelineContainer = document.getElementById('player-timeline');
+            playerTimelineOrder.push(eventElement.dataset.text);
+            playerTimelineContainer.appendChild(eventElement);
+            eventElement.classList.remove('cursor-pointer', 'hover:bg-purple-800');
+            eventElement.classList.add('bg-purple-700');
+            // Make it unclickable
+            eventElement.replaceWith(eventElement.cloneNode(true));
+        }
+
+        document.getElementById('submit-timeline-btn').addEventListener('click', () => {
+            const question = gameData.historian.questions[timelineQuestionIndex];
+            const correctOrder = question.events.sort((a, b) => parseInt(a.date) - parseInt(b.date)).map(e => e.text);
+            const correctEvents = question.events.sort((a, b) => parseInt(a.date) - parseInt(b.date));
+
+            const playerFeedbackContainer = document.getElementById('feedback-player-timeline');
+            const correctFeedbackContainer = document.getElementById('feedback-correct-timeline');
+            playerFeedbackContainer.innerHTML = '';
+            correctFeedbackContainer.innerHTML = '';
+
+            playerTimelineOrder.forEach((eventText, index) => {
+                const item = document.createElement('div');
+                item.textContent = eventText;
+                item.classList.add('bg-gray-700', 'p-3', 'rounded-lg', 'timeline-item');
+                if (eventText === correctOrder[index]) {
+                    item.classList.add('correct');
+                } else {
+                    item.classList.add('incorrect');
+                }
+                playerFeedbackContainer.appendChild(item);
+            });
+            
+            correctEvents.forEach(event => {
+                const item = document.createElement('div');
+                item.textContent = `${event.date}: ${event.text}`;
+                item.classList.add('bg-gray-700', 'p-3', 'rounded-lg');
+                correctFeedbackContainer.appendChild(item);
+            });
+
+            document.getElementById('timeline-question-container').classList.add('hidden');
+            document.getElementById('timeline-feedback-container').classList.remove('hidden');
+        });
+        
+        document.getElementById('timeline-next-btn').addEventListener('click', () => {
+            timelineQuestionIndex++;
+            if(timelineQuestionIndex < gameData.historian.questions.length) {
+                displayTimelineQuestion();
+            } else {
+                document.getElementById('end-game-score').textContent = `You've completed all timeline challenges!`;
+                showModal(endGameModal);
+            }
+        });
+        
+        // --- FLASHCARD LOGIC ---
+        function buildFlashcardSelectionModal() {
+            const topicsContainer = document.getElementById('flashcard-topics');
+            topicsContainer.innerHTML = '';
+            const topics = ['History', 'Terroir', 'Grapes', 'Law', 'Gastronomy', 'Critic'];
+            
+            const createCheckbox = (id, value, label, checked = true) => {
+                 const wrapper = document.createElement('div');
+                 wrapper.classList.add('flex', 'items-center');
+                 const checkbox = document.createElement('input');
+                 checkbox.type = 'checkbox';
+                 checkbox.id = id;
+                 checkbox.value = value;
+                 checkbox.checked = checked;
+                 checkbox.classList.add('h-4', 'w-4', 'rounded', 'border-gray-300', 'text-purple-600', 'focus:ring-purple-500');
+                 const labelEl = document.createElement('label');
+                 labelEl.htmlFor = id;
+                 labelEl.textContent = label;
+                 labelEl.classList.add('ml-3', 'block', 'text-sm', 'font-medium', 'text-gray-300');
+                 wrapper.appendChild(checkbox);
+                 wrapper.appendChild(labelEl);
+                 return wrapper;
+            };
+            
+            const allCheckboxWrapper = createCheckbox('topic-all', 'all', 'Select All', true);
+            topicsContainer.appendChild(allCheckboxWrapper);
+            
+            const allCheckbox = allCheckboxWrapper.querySelector('input');
+
+            const topicCheckboxes = topics.map(topic => {
+                const cb = createCheckbox(`topic-${topic.toLowerCase()}`, topic.toLowerCase(), topic, true);
+                topicsContainer.appendChild(cb);
+                return cb.querySelector('input');
+            });
+
+            allCheckbox.addEventListener('change', () => {
+                topicCheckboxes.forEach(cb => cb.checked = allCheckbox.checked);
+            });
+
+            topicCheckboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    if (!cb.checked) {
+                        allCheckbox.checked = false;
+                    } else if (topicCheckboxes.every(c => c.checked)) {
+                        allCheckbox.checked = true;
+                    }
+                });
+            });
+        }
+
+        function startFlashcardSession(topics) {
+            flashcardDeck = [];
+            topics.forEach(topic => {
+                const topicKey = topic.toLowerCase();
+                if (topicKey === 'history') {
+                    gameData.historian.questions.forEach(q => {
+                        q.events.forEach(e => {
+                            flashcardDeck.push({ q: e.text, a: e.date });
+                        });
+                    });
+                } else if (gameData[topicKey] && gameData[topicKey].questions) {
+                     gameData[topicKey].questions.forEach(q => {
+                        flashcardDeck.push({ q: q.q, a: q.a });
+                    });
+                }
+            });
+            
+            flashcardDeck = shuffleArray(flashcardDeck);
+            currentCardIndex = 0;
+            showView(flashcardView);
+            displayFlashcard();
+        }
+
+        function displayFlashcard() {
+            if (flashcardDeck.length === 0) {
+                // Handle case with no cards
+                document.getElementById('flashcard-front').textContent = "No cards in this deck.";
+                document.getElementById('flashcard-back').textContent = "Please select other topics.";
+                document.getElementById('card-counter').textContent = "0 of 0";
+                return;
+            }
+            
+            const card = flashcardDeck[currentCardIndex];
+            document.getElementById('flashcard-front').textContent = card.q;
+            document.getElementById('flashcard-back').textContent = card.a;
+            document.getElementById('card-counter').textContent = `Card ${currentCardIndex + 1} of ${flashcardDeck.length}`;
+            
+            document.getElementById('flashcard').classList.remove('is-flipped');
+        }
+
+        document.getElementById('flashcard').addEventListener('click', (e) => {
+            e.currentTarget.classList.toggle('is-flipped');
+        });
+        
+        document.getElementById('next-card-btn').addEventListener('click', () => {
+            if (currentCardIndex < flashcardDeck.length - 1) {
+                currentCardIndex++;
+                displayFlashcard();
+            }
+        });
+        
+        document.getElementById('prev-card-btn').addEventListener('click', () => {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                displayFlashcard();
+            }
+        });
+
+        // --- AI FEATURE LOGIC ---
+        function displayAiButton(subjectType, subjectName, isCorrect) {
+            const container = document.getElementById('ai-feature-container');
+            container.innerHTML = '';
+            
+            let buttonText = '';
+            
+            // Default AI button logic for other modules
+            if (currentModule.title !== "The Gastronome's Table") {
+                 switch(subjectType) {
+                    case 'grape': buttonText = `📚 Generate Ampelography Profile for ${subjectName}`; break;
+                    case 'wine':
+                    case 'producer':
+                    case 'vintage':
+                    case 'place':
+                         buttonText = `✨ Generate Critical Profile for ${subjectName}`; break;
+                    default: return;
+                }
+            } else { // Specific logic for Gastronome's Table
+                 if (isCorrect) {
+                    buttonText = `➡️ Dive Deeper into ${subjectName}`;
+                } else {
+                    buttonText = `💡 Learn More about ${subjectName}`;
+                }
+            }
+
+
+            const button = document.createElement('button');
+            button.textContent = buttonText;
+            button.classList.add('bg-blue-600', 'hover:bg-blue-500', 'text-white', 'px-4', 'py-2', 'rounded-lg', 'transition-colors', 'duration-300', 'w-full', 'mt-2');
+            button.addEventListener('click', () => {
+                handleAiRequest(subjectType, subjectName, button);
+            });
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.id = 'ai-result';
+            resultDiv.classList.add('mt-4', 'p-4', 'bg-gray-700', 'rounded-lg', 'prose', 'prose-invert', 'max-w-none');
+
+            container.appendChild(button);
+            container.appendChild(resultDiv);
+            container.classList.remove('hidden');
+        }
+
+        async function handleAiRequest(subjectType, subjectName, button) {
+            if (!apiKey) {
+                alert("Please set your Google AI API key in the 'AI Settings' on the main menu first.");
+                return;
+            }
+            
+            const resultDiv = document.getElementById('ai-result');
+            button.disabled = true;
+            button.textContent = 'Generating...';
+            resultDiv.innerHTML = '<p>Contacting the AI specialist... please wait.</p>';
+
+            const prompt = generatePrompt(subjectType, subjectName);
+
+            try {
+                const text = await callGemini(prompt);
+                resultDiv.innerHTML = text;
+            } catch (error) {
+                console.error('Error calling Gemini API:', error);
+                resultDiv.innerHTML = `<p class="text-red-400">An error occurred. Please check the console for details. Ensure your API key is correct and has access to the Gemini model.</p>`;
+            } finally {
+                button.disabled = false;
+                // Reset button text to its original state after generation
+                 if (currentModule.title === "The Gastronome's Table") {
+                    // This assumes the button's original state can be determined again.
+                    // A better approach would be to store the `isCorrect` state with the button if needed.
+                    // For now, we'll just use a generic "Regenerate".
+                    button.textContent = `Regenerate AI Explanation`;
+                } else {
+                    button.textContent = `Regenerate Profile`;
+                }
+            }
+        }
+        
+        function generatePrompt(subjectType, subjectName) {
+            const regionName = "Pfalz"; // This is the designated region for the game
+            switch(subjectType) {
+                case 'grape':
+                    return `You are a master ampelographer and wine educator with a specialization in ${regionName}. Your task is to profile the grape: ${subjectName}. Your response must follow this strict pyramid of importance: 1. The grape's specific expression and role within ${regionName}. 2. Its general viticultural characteristics as they manifest in ${regionName}'s climate. 3. Its history within the region. Your entire response must be framed through the lens of ${regionName}. Synthesize information from authoritative sources, but always prioritize the context of ${regionName}. Structure your response with the following sections: <h3>Overview and History in ${regionName}</h3>, <h3>Viticultural Characteristics in ${regionName}</h3>, and <h3>Typical ${regionName} Wine Profile</h3>. Format the output in simple HTML using <p> and <h3> tags.`;
+                case 'wine':
+                case 'producer':
+                case 'vintage':
+                case 'place':
+                    return `You are a world-renowned wine critic specializing exclusively in the wines of ${regionName}. Your task is to write a professional profile for the following iconic ${regionName} topic: ${subjectName}. Your analysis must adhere to a strict pyramid of importance: 1) The specific subject's style or character. 2) The character of its specific appellation within ${regionName}. 3) The general characteristics of ${regionName}. Do not mention wines from other regions unless making a direct, essential stylistic comparison. Synthesize information from authoritative sources like Vinous, The Wine Advocate, and JancisRobinson.com, but ensure the final note is your own expert synthesis. Format in simple HTML using <p> and <h3> tags.`;
+                case 'dish':
+                case 'wine_pairing':
+                    return `You are a master sommelier and food theorist specializing in the cuisine and wine of ${regionName}. Your task is to explain the classic wine pairing for the dish: ${subjectName}. Your explanation must follow this strict pyramid of importance: 1. The specific characteristics of the dish as found in the region. 2. The typical profile of a ${regionName} wine that pairs with it. 3. The underlying gastronomic principles (complement, contrast, texture) that make the pairing successful within the context of ${regionName}'s culture. Synthesize information from expert sources, but frame your entire response within the context of ${regionName}. Format in simple HTML using <p> and <h3> tags.`;
+                case 'ingredient':
+                     return `You are a food and wine expert specializing in the cuisine of ${regionName}. Your task is to provide a detailed overview of the ingredient: ${subjectName}. Your response must follow this strict pyramid of importance: 1. How this ingredient is used in the local cuisine of ${regionName}. 2. Its typical flavor and aromatic profile. 3. How its profile might be reflected in or complement the local wines, but do not focus on specific pairings unless it is intrinsic to the ingredient itself. Synthesize from authoritative sources. Format in simple HTML using <p> and <h3> tags.`;
+                case 'spirit':
+                case 'liqueur':
+                     return `You are an expert on the spirits and liqueurs of Germany, with a specialization in ${regionName}. Your task is to provide a detailed overview of ${subjectName}. Your response must follow this strict pyramid of importance: 1. How ${subjectName} is made and consumed specifically within ${regionName}. 2. Its key ingredients and typical flavor profile. 3. Its cultural significance in ${regionName}. Do not focus on wine pairings unless it is a key part of its consumption. Synthesize information from authoritative sources. Format in simple HTML using <p> and <h3> tags.`;
+                default:
+                    return `Tell me about ${subjectName} in the context of the ${regionName} wine region.`;
+            }
+        }
+        
+        async function callGemini(prompt) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: prompt
+                    }]
+                }]
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.json();
+                throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody.error.message}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts.length > 0) {
+                return data.candidates[0].content.parts[0].text;
+            } else {
+                // Handle cases where the response structure is unexpected or content is missing
+                console.warn("Unexpected API response structure:", data);
+                // Check for safety ratings block
+                if (data.candidates && data.candidates[0] && data.candidates[0].finishReason === 'SAFETY') {
+                    return "<p class='text-yellow-400'>The AI's response was blocked for safety reasons. This can sometimes happen with prompts about alcoholic beverages. Please try again or rephrase.</p>";
+                }
+                return "<p class='text-red-400'>The AI returned an empty or invalid response. Please try again.</p>";
+            }
+        }
+
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+        });
+    </script>
+</body>
+</html>
