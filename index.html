@@ -445,9 +445,175 @@
             flashcard: {
                 title: "Flashcard Study",
                 instructions: "First, select the topics you want to study to build your deck. Then, click on the card to flip it and reveal the answer. Use the buttons to navigate through your custom deck.",
-                // Flashcard data will be generated from the other modules
             }
         };
+
+        // NEW: Dedicated Flashcard Decks
+        const flashcardDecks = {
+            history: [
+                { q: "Concept: Napoleonic Inheritance Laws", a: "Required equal division of property among all heirs. In the Pfalz, this led to extreme parcellation of vineyard holdings after the secularization of church lands in 1801, a structure that defines the region today." },
+                { q: "Event: 1828 Bavarian Vineyard Classification", a: "A seminal land survey by the Bavarian government for tax purposes. It was one of the earliest official classifications of vineyards by quality, awarding the highest rating to Forster Kirchenstück." },
+                { q: "Figure: Pierre Jordan", a: "Founded the estate in 1718 that became Bassermann-Jordan. He was the first in the region to focus on Riesling and, crucially, to bottle his own estate's wine, establishing a new model of producer-guaranteed quality." },
+                { q: "Concept: Flurbereinigung", a: "A large-scale project of vineyard restructuring, peaking in the 1980s. It involved consolidating parcels and regrading slopes, providing the physical opportunity for the 'modern quality revolution' by enabling replanting with better clones." },
+                { q: "Event: 1971 German Wine Law", a: "Established the modern quality hierarchy based on must weight (ripeness) rather than origin. Its failure to recognize terroir led top producers in the VDP to create their own parallel, site-specific classification." },
+                { q: "Figure: The 'Three B's' of Deidesheim", a: "The historic, benchmark estates of Dr. Bassermann-Jordan, Reichsrat von Buhl, and Dr. Bürklin-Wolf, who were foundational in establishing the Pfalz's reputation for quality." },
+                { q: "Event: Hambach Festival (1832)", a: "Known as the 'cradle of German democracy,' this political festival had direct ties to local winegrowers who protested harsh economic conditions. The nearby Hambacher Schlossberg vineyard commemorates this link." },
+                { q: "Artifact: Speyer Wine Bottle", a: "Dated to c. 325-350 AD, it is the world's oldest known unopened bottle of liquid wine. It serves as incontrovertible proof of the nearly two-millennia-long history of viticulture in the Pfalz." },
+                { q: "Event: Roman Era Viticulture", a: "Viticulture in the Pfalz dates to at least 50 AD. Evidence includes Roman-era pruning knives and agricultural estates (*villae rusticae*) near Wachenheim and Ungstein." },
+                { q: "Event: Thirty Years' War (1618-1648)", a: "A major conflict that severely disrupted the region's development and led to the widespread devastation of its vineyards, requiring centuries of rebuilding." },
+                { q: "Concept: Secularization (1801)", a: "Under Napoleon, vast church-owned vineyards were broken up and sold into private hands, fundamentally changing the ownership structure of Pfalz viticulture." },
+                { q: "Political Shift: Congress of Vienna (1816)", a: "Placed the Pfalz under the control of the Kingdom of Bavaria, which led to the 1828 Vineyard Classification and a new focus on quality assessment." },
+                { q: "Term: Pfalz (origin)", a: "Derived from the Latin *palatium* (palace), a reference to the Counts Palatine who resided in Heidelberg. The region was known as Rheinpfalz until 1995." },
+                { q: "Event: Modern Quality Revolution (1980s)", a: "A pivotal decade where a new generation of growers rejected the bulk-wine paradigm and began focusing on high-quality, dry (*trocken*) wines, especially Riesling." },
+                { q: "Vintage: 1811 'Comet Vintage'", a: "A legendary vintage, so-named for a visible comet, that cemented the international fame of Pfalz Riesling, particularly from producers like Bassermann-Jordan." },
+                { q: "Organization: VDP Founding (1908)", a: "The *Verein der Naturwein-Versteigerer Rheinpfalz* was established to champion *Naturwein*—wine made without chaptalization—as a stand against the common practice of adding sugar." },
+                { q: "Concept: VDP Classification Adoption (2012)", a: "The VDP formally adopted its modern, four-tier, origin-based classification pyramid (*Gutswein*, *Ortswein*, *Erste Lage*, *Grosse Lage*), solidifying its terroir-first philosophy." },
+                { q: "Landmark: Speyer Cathedral's *Domnapf*", a: "A 1,560-liter stone basin. Tradition dictated that each new bishop fill it with wine for the citizens, symbolizing the deep historical bond between the church, civic life, and wine culture." },
+                { q: "Historical Basis of Prestige", a: "Unlike other regions, Pfalz prestige is built on a dual foundation: a long history of official terroir classification (e.g., 1828 map) and the leadership of pioneering, quality-focused producers (e.g., Jordan)." },
+                { q: "Impact of 1971 Law on Quality", a: "By rewarding ripeness over terroir, the law inadvertently incentivized a focus on quantity, contributing to a quality crisis in the 1970s with a flood of inexpensive, sweet wines." },
+                { q: "VDP's Predecessor Mission", a: "The core mission of the VDP's forerunner was to protect the concept of 'natural wine' (*Naturwein*), defined as wine fermented from its own sugars without any additions." },
+                { q: "Who were the founding members of the VDP forerunner?", a: "A collection of the region's most prestigious estates, including the ancestors of today's Dr. Bassermann-Jordan, Dr. Bürklin-Wolf, Reichsrat von Buhl, and von Winning." },
+                { q: "What is the significance of the Tranchot-Müffling maps?", a: "These Napoleonic-era cadastral maps, along with the 1828 Bavarian map, provided a historical foundation for the VDP to identify the region's greatest terroirs for its modern classification." },
+                { q: "What was the 'Pfalz Classic' style defined by?", a: "A powerful, full-bodied, and characteristically dry (*trocken*) style, born from a warm climate and a producer-led commitment to site-specific winemaking." },
+                { q: "What is the historical significance of the Hambacher Schlossberg vineyard?", a: "Its name immortalizes the connection between the 1832 Hambach Festival, a key event for German democracy, and the local winegrowers who participated and protested there." }
+            ],
+            terroir: [
+                { q: "Geology: Buntsandstein (Colored Sandstone)", a: "The most prevalent parent rock in the Mittelhaardt. Porous, sandy, and quick to warm, it produces concentrated, aromatic Rieslings with stone fruit notes and a lean, mineral structure. Examples: Forster Ungeheuer." },
+                { q: "Geology: Muschelkalk (Shell Limestone)", a: "Triassic-era limestone rich in marine fossils, prominent in the Südliche Weinstraße. Provides excellent drainage and produces elegant, complex wines with vibrant acidity and a distinct saline minerality. Ideal for Pinot varieties. Example: Kallstadter Saumagen." },
+                { q: "Geology: Basalt", a: "Dark, volcanic rock found in top Forst vineyards (Pechstein, Kirchenstück). An exceptional heat accumulator, it weathers into nutrient-rich clay and produces powerful, complex, mineral-driven wines with smoky and tropical notes." },
+                { q: "Geography: Haardt Mountains Rain Shadow", a: "The Haardt range, a northern extension of the Vosges, blocks cold, wet westerly winds, making the Pfalz one of Germany's warmest, sunniest, and driest regions, with a climate similar to Alsace." },
+                { q: "Climate: Growing Degree Days (GDD)", a: "The Pfalz has approx. 1375 GDD, placing it at the very warm end of Winkler Region I. This dual character allows it to perfectly ripen both high-acidity Riesling and structured red varieties like Spätburgunder." },
+                { q: "Viticultural Risk: Drought Stress", a: "As one of Germany's driest regions with many well-drained soils (like sandstone), drought is the most pressing and increasing viticultural risk, making supplemental irrigation more common." },
+                { q: "Viticultural Risk: Spring Frost", a: "Despite its warmth, late spring frosts are a significant annual threat, especially in low-lying 'frost pockets' with poor air drainage. The 2017 vintage was severely impacted by this." },
+                { q: "Geology: Loess & Loam", a: "Fine-grained, calcareous silt (Loess) deposited by wind. These soils are more fertile with greater water-holding capacity, generally producing fruitier, rounder, and more accessible wines." },
+                { q: "Geography: Upper Rhine Graben", a: "A massive collapsed rift valley. This tectonic event is the primary reason for the Pfalz's immense geological diversity, as it fractured the earth's crust and thrust ancient rock layers to the surface." },
+                { q: "Climate: Average Annual Temperature & Sunshine", a: "Approximately 11°C (52°F) with around 1,800 hours of sunshine per year, making it one of Germany's warmest regions." },
+                { q: "Viticultural Risk: Fungal Diseases", a: "While the climate is dry, warmth and humidity in certain vintages (e.g., 2016) create ideal conditions for Downy and Powdery Mildew, requiring intensive canopy management." },
+                { q: "Soil & Style: Buntsandstein Influence", a: "The porous, low-nutrient sandstone forces vine roots to dig deep for water and nutrients, which naturally limits vigor and concentrates flavors in the grapes, leading to intense, mineral-driven wines." },
+                { q: "Soil & Style: Muschelkalk Influence", a: "The high calcium carbonate content of limestone soils is known to help preserve acidity in grapes, contributing to the elegant structure and vibrant acidity of wines grown on it, especially Pinot varieties." },
+                { q: "Soil & Style: Basalt Influence", a: "The heat retention of dark basalt rock moderates temperatures, aiding ripening and producing powerful, complex wines. The weathered, nutrient-rich clay soil also provides good water-holding capacity." },
+                { q: "Topography: Vineyard Elevation", a: "Vineyards typically range from 120 to 250 meters. This elevation on the eastern foothills of the Haardt provides excellent sun exposure, especially on south- and east-facing slopes, which is crucial for ripening." },
+                { q: "Mittelhaardt vs. Südliche Weinstraße Terroir", a: "The Mittelhaardt's core of sandstone and basalt is ideal for powerful Riesling. The Südliche Weinstraße has a higher prevalence of limestone and clay, providing a better foundation for the Pinot family." },
+                { q: "Key Village: Forst", a: "Home to a cluster of legendary Grosse Lagen on basalt soil, including Pechstein, Kirchenstück, and Jesuitengarten, producing some of the most powerful and complex wines in the Pfalz." },
+                { q: "Key Village: Kallstadt", a: "Known for the Kallstadter Saumagen, a Grosse Lage with Muschelkalk (limestone) soil, producing wines of great elegance and minerality." },
+                { q: "Key Village: Birkweiler", a: "A top village in the Südliche Weinstraße, home to the Kastanienbusch (red slate) and Mandelberg (limestone) vineyards, showcasing the area's geological diversity." },
+                { q: "Climate Change Impact", a: "Increasing heat and drought threaten to push the Pfalz into a warmer climatic category, which could compromise the signature high acidity of its Rieslings and force further evolution in viticulture (e.g., more irrigation)." },
+                { q: "Term: Bodengeschmack", a: "German for 'taste of the soil.' A term used by critics to capture the savory, textural, and saline quality that is a hallmark of Pfalz Riesling, distinguishing it from fruitier styles." },
+                { q: "Comparative Climate: Alsace", a: "The Pfalz shares a similar warm, dry, and sunny climate with Alsace, as both are situated in the rain shadow of the same mountain system (Haardt/Vosges)." },
+                { q: "Physical Properties: Buntsandstein", a: "Porous, excellent drainage, low water and nutrient retention, warms quickly. These properties lead to concentrated wines." },
+                { q: "Physical Properties: Muschelkalk", a: "Good drainage, good heat retention, and fractured bedrock that allows deep root access to water during dry spells." },
+                { q: "Physical Properties: Basalt", a: "Exceptional heat accumulator, weathers into heavy, nutrient-rich clay soils with good water-holding capacity." }
+            ],
+            grapes: [
+                { q: "Primary Variety: Riesling", a: "The king of the Pfalz (25% of plantings). It's a late-ripening, late-budding variety. The warm climate yields a powerful, full-bodied, dry style with ripe stone fruit (peach, apricot) aromas, contrasting with the lighter Mosel style." },
+                { q: "Primary Variety: Spätburgunder (Pinot Noir)", a: "The most prestigious red grape, thriving on Muschelkalk soils. Genetically unstable, with a key distinction between fruity German clones and the more structured, complex French 'Dijon' clones used by top producers." },
+                { q: "Secondary Variety: Dornfelder", a: "The second most-planted grape in the Pfalz. A successful German crossing prized for producing deeply colored, accessible red wines with soft tannins and a velvety texture." },
+                { q: "Secondary Varieties: Grauburgunder & Weissburgunder", a: "Pinot Gris and Pinot Blanc, respectively. These color mutations of Spätburgunder are of growing importance, used for full-bodied, textural white wines that are often oak-aged." },
+                { q: "Vineyard Practice: Halbbogen", a: "A distinct regional vine training method where the fruiting canes of the Guyot system are trained in an arch. This improves canopy management, ensuring good sun exposure and air circulation to the grape clusters." },
+                { q: "Vineyard Practice: VDP Yield Restrictions", a: "A key quality measure. VDP estates are restricted to a maximum of 50 hl/ha for Grosse Lage sites, less than half the legal limit of 105 hl/ha for Qualitätswein, ensuring concentration and intensity." },
+                { q: "Grape Lineage: Riesling", a: "A crossing between Gouais Blanc (*Weisser Heunisch*) and a second parent that is a cross between a wild vine and Traminer. This makes it a half-sibling to Chardonnay and Gamay." },
+                { q: "Grape Lineage: Pinot Family", a: "Spätburgunder (Pinot Noir) is an ancient and genetically unstable variety. Grauburgunder (Pinot Gris) and Weissburgunder (Pinot Blanc) are well-known color mutations of it." },
+                { q: "Clonal Selection: Riesling", a: "While many clones exist (e.g., Geisenheim 239), modern quality-focused producers often seek out clones with smaller berries and looser clusters to enhance concentration and rot resistance." },
+                { q: "Clonal Selection: Spätburgunder", a: "A critical distinction exists between traditional, fruitier German clones (e.g., Freiburger) and the smaller-berried, more structured French 'Dijon' clones (e.g., 115, 777) used for top 'Burgundian' style wines." },
+                { q: "Viticultural Trait: Riesling Ripening", a: "Riesling is a late-ripening variety, which is crucial in the Pfalz's sunny climate. It allows the grape to achieve full physiological ripeness and flavor development while retaining its signature high acidity." },
+                { q: "Viticultural Trait: Spätburgunder Challenges", a: "Its thin skins and tightly packed clusters make it highly susceptible to fungal diseases, especially botrytis bunch rot, requiring meticulous vineyard management." },
+                { q: "Secondary Variety: Scheurebe", a: "An aromatic grape variety with a dedicated following in the Pfalz. Though not widely planted, it can produce impressive wines, particularly in off-dry or sweet styles, from producers like Müller-Catoir." },
+                { q: "Secondary Variety: Portugieser", a: "A traditional, early-ripening red grape used to produce light-bodied, mild red wines and rosés (*Weissherbst*) that are designed for early, uncomplicated consumption." },
+                { q: "Vine Training: Guyot System", a: "The dominant modern training system in the Pfalz. It is a cane-pruning system, typically with Vertical Shoot Positioning (VSP), that is well-suited to the region's vineyards." },
+                { q: "Vine Training: Pfälzer Kammertbau", a: "A historical system, now only seen in displays, where vines were trained on single wooden posts to form a chamber-like structure. It is believed to have Roman origins." },
+                { q: "Planting Density: Legal vs. VDP", a: "The legal minimum density is 2,200 vines/ha. However, top VDP producers often plant much more densely to encourage root competition and reduce vigor, focusing the vine's energy on a smaller amount of higher-quality fruit." },
+                { q: "Yields: The 'Why'", a: "Restricting yields (e.g., VDP's 50 hl/ha for GG) is a primary tool for quality. With fewer grape clusters, the vine directs all its nutrients and ripening capabilities into the remaining fruit, resulting in greater concentration, intensity, and aging potential." },
+                { q: "Irrigation: A Modern Adaptation", a: "Historically unnecessary, supplemental drip irrigation has become a critical tool to combat drought stress, especially for ensuring the survival and establishment of young vines in hot, dry years." },
+                { q: "Authorized GG Varieties", a: "Currently, only Riesling, Spätburgunder, and Weissburgunder are authorized for VDP.Grosse Lage bottlings in the Pfalz, signifying their ability to express the top terroirs." },
+                { q: "Growth Cycle: Bud Break", a: "Typically occurs in April. Riesling's relatively late budding provides some protection against the risk of late spring frosts." },
+                { q: "Growth Cycle: Harvest", a: "Typically takes place from late September through October. The long, sunny autumns are critical for allowing late-ripening varieties like Riesling to reach optimal ripeness." },
+                { q: "Grape-Soil Match: Spätburgunder & Muschelkalk", a: "Spätburgunder expresses terroir with great fidelity and performs exceptionally well on the limestone-rich Muschelkalk soils, which promote elegance and structure in the final wine." },
+                { q: "Grape-Soil Match: Riesling & Mittelhaardt", a: "The powerful, mineral-driven style of classic Mittelhaardt Riesling is a direct reflection of its suitability to the region's dominant sandstone and basalt soils." },
+                { q: "Term: Crossing", a: "A new grape variety bred from two parent varieties of the same species (Vitis vinifera). Dornfelder and Scheurebe are successful German crossings found in the Pfalz." }
+            ],
+            law: [
+                { q: "Key Term: Grosses Gewächs (GG)", a: "A trademarked VDP term for a dry wine from a VDP.Grosse Lage (Great Site/Grand Cru) vineyard. It is the pinnacle of dry German wine, with strict rules on yield, hand-harvesting, and release dates." },
+                { q: "Key Term: Prädikatswein", a: "The highest tier of the traditional 1971 law, based on must weight. Chaptalization is strictly forbidden. Includes Kabinett, Spätlese, Auslese, BA, TBA, and Eiswein." },
+                { q: "Hierarchy: VDP Classification Pyramid", a: "An origin-based system created by top producers. Tiers are: VDP.Gutswein (regional), VDP.Ortswein (village), VDP.Erste Lage (Premier Cru), and VDP.Grosse Lage (Grand Cru)." },
+                { q: "Rule: Chaptalization", a: "The addition of sugar to unfermented grape must to increase the final alcohol content. It is PERMITTED for Qualitätswein but STRICTLY FORBIDDEN for all levels of Prädikatswein." },
+                { q: "Rule: GG Aging Requirements", a: "White GG wines must be released no earlier than Sept. 1 of the year following harvest. Red GG wines require an additional year of aging, including a minimum of 12 months in oak." },
+                { q: "Vinification: Traditionalist (Stückfass)", a: "Emphasizes minimal intervention, using large (1200L), old, neutral oak casks (*Stückfass*) for fermentation/aging. This builds texture and complexity through slow micro-oxygenation without imparting oak flavor." },
+                { q: "Vinification: Modernist (Stainless Steel)", a: "Leverages technology, using temperature-controlled stainless steel tanks and cultured yeasts to produce wines of great purity and to preserve fresh, primary fruit aromas." },
+                { q: "Hierarchy: 1971 Wine Law", a: "A ripeness-based pyramid. From lowest to highest: Deutscher Wein, Landwein (PGI), Qualitätswein (PDO), and Prädikatswein (PDO with higher ripeness)." },
+                { q: "Key Term: Qualitätswein", a: "Means 'quality wine.' A PDO category from one of the 13 Anbaugebiete. Must pass sensory/analytical tests (AP Nr.), but chaptalization is permitted." },
+                { q: "Key Term: Naturwein (Historical)", a: "The concept the VDP was founded to protect. Under the old laws, it meant a wine made naturally from its own grape sugars, without chaptalization. This term was abolished by the 1971 law." },
+                { q: "Hierarchy: New 2026 Wine Law", a: "Formally adopts an origin-based 'Romanesque' hierarchy for all German producers, making the VDP philosophy the national standard. Tiers: Anbaugebiet, Region, Ortswein, Einzellage." },
+                { q: "Key Term: Einzellage", a: "A single, registered vineyard site. On a label, its name must be preceded by the name of its village (e.g., Forster Kirchenstück)." },
+                { q: "Key Term: Ortswein", a: "VDP term for a 'village' wine, sourced from high-quality vineyards within a single named village, representing that village's typical style." },
+                { q: "Key Term: Gutswein", a: "VDP term for a 'regional' or 'estate' wine. Represents the base of the quality pyramid and serves as a calling card for the estate's style." },
+                { q: "Rule: Spätlese Must Weight", a: "Minimum 85° Oechsle for Riesling. This signifies a 'late harvest' level of ripeness, but the resulting wine can be fermented dry or left with residual sugar." },
+                { q: "Rule: TBA Must Weight", a: "Minimum 150° Oechsle. This is 'dry berry select harvest,' made from shriveled, botrytized grapes, producing intensely sweet, rare dessert wines." },
+                { q: "Rule: Eiswein (Ice Wine)", a: "Must have at least Beerenauslese-level ripeness (120° Oechsle) but must be made from healthy (non-botrytized) grapes harvested and pressed while frozen solid." },
+                { q: "Rule: Sekt Production Methods", a: "Most Sekt is made by the efficient Tank (Charmat) Method. High-quality *Winzersekt* and VDP.Sekt must use the Traditional Method (*Klassische Flaschengärung*)." },
+                { q: "Rule: VDP.Sekt.Prestige", a: "The VDP's top tier for sparkling wine. Requires traditional method, estate-grown grapes, and a minimum of 36 months of lees aging, on par with vintage Champagne." },
+                { q: "Term: Trocken", a: "Legally defined as 'dry.' The wine must have a maximum of 9 grams per liter of residual sugar." },
+                { q: "Term: Halbtrocken", a: "Legally defined as 'half-dry' or off-dry. The wine contains between 9 and 18 g/L of residual sugar." },
+                { q: "Term: AP Nr.", a: "*Amtliche Prüfungsnummer*. An official test number assigned to every bottle of Qualitätswein and Prädikatswein, certifying it has passed quality control tests." },
+                { q: "Term: Gutsabfüllung", a: "Means 'estate-bottled,' indicating the wine was grown and bottled by the same producer, a mark of authenticity." },
+                { q: "Vinification: Acidification", a: "The addition of acid (usually tartaric). Uncommon in the cool German climate but legally permissible and may be used in exceptionally hot and dry vintages to maintain balance." },
+                { q: "Vinification: Burgundian Convergence", a: "A modern philosophy blending tradition and modernism, exemplified by using Burgundian-sized oak barrels (*barriques*) for fermenting top dry Rieslings and Spätburgunder to build texture and complexity." }
+            ],
+            gastronomy: [
+                { q: "Iconic Dish: Pfälzer Saumagen", a: "The signature dish of the Pfalz. A savory pudding of pork, diced potatoes, and sausage meat, seasoned with marjoram and nutmeg, cooked in a pig's stomach, then sliced and pan-fried." },
+                { q: "Classic Pairing: Saumagen & Dry Riesling", a: "The high acidity of a powerful, dry Riesling (like a GG) cuts through the richness and fat of the Saumagen, while the wine's full body matches the dish's weight, creating a perfect balance." },
+                { q: "Iconic Dish: Dampfnudeln", a: "Versatile steamed yeast dumplings with a salty, golden-brown crust on the bottom. Can be served savory with potato soup or goulash, or sweet with a vanilla or wine-based sauce." },
+                { q: "Classic Pairing: Game & Spätburgunder", a: "The earthy notes, red fruit, and firm tannins of a top Pfalz Spätburgunder complement the gamy flavors of roasted venison or wild boar and stand up to the richness of the dish." },
+                { q: "Local Beverage: Weinschorle", a: "The ubiquitous regional drink. A spritzer of wine (usually Riesling) and sparkling water, served in a 0.5L dimpled glass called a *Dubbeglas*. It creates a refreshing, lower-alcohol drink from the region's powerful wines." },
+                { q: "Local Beverage: Pfälzer Weinbrand", a: "A brandy with a protected geographical indication (GI), distilled from local Pfalz wines. It is typically aged in oak and must be bottled at a minimum of 38% ABV." },
+                { q: "Iconic Dish: Pfälzer Dreifaltigkeit", a: "The 'Palatinate Trinity.' A celebratory platter showcasing the three pillars of local charcuterie: a slice of fried Saumagen, a Bratwurst (pork sausage), and a Leberknödel (liver dumpling)." },
+                { q: "Iconic Dish: Grumbeersupp mit Quetschekuche", a: "A quintessential autumn dish illustrating the local love for sweet and savory combinations: a hearty potato soup (*Grumbeersupp*) is served alongside a slice of fresh plum cake (*Quetschekuche*)." },
+                { q: "Iconic Dish: Flääschknepp", a: "Substantial dumplings made from a mixture of ground pork and beef, poached and traditionally served with a piquant horseradish sauce." },
+                { q: "Key Ingredient: Pork", a: "The absolute foundation of the local diet, used in Saumagen, Bratwurst, Leberknödel, and Kesselfleisch." },
+                { q: "Key Ingredient: Potatoes (Grumbeere)", a: "The local dialect for potato, a staple crop of the Rhine plain and central to many iconic dishes." },
+                { q: "Key Ingredient: Sweet Chestnuts (Keschde)", a: "Harvested from the Palatinate Forest, these are a beloved seasonal specialty, roasted at markets or used as a puree with game." },
+                { q: "Local Custom: The Domnapf", a: "The 'Cathedral Bowl' in Speyer. Tradition required each new bishop to fill the 1,560-liter basin with wine for the citizens, symbolizing the bond between church, city, and wine." },
+                { q: "Local Beverage: Obstbrand / Obstwasser", a: "Clear, unaged fruit brandies distilled from the region's abundant fruit. Common examples are *Kirschwasser* (cherry) and *Zwetschgenwasser* (plum)." },
+                { q: "Local Beverage: Beer", a: "The Pfalz has a vibrant local brewing scene, often producing traditional, unfiltered (*naturtrüb*) German styles like Helles (pale lager) and Weizen (wheat beer)." },
+                { q: "Pairing Rationale: Weissburgunder & Savory Dampfnudeln", a: "A textural white wine with good body and moderate acidity, like Weissburgunder, provides a refreshing counterpoint that cleanses the palate without overpowering the delicate dough of the dumpling." },
+                { q: "Pairing Rationale: Zwiebelkuchen & Federweisser", a: "This is a classic seasonal pairing. *Federweisser* is the still-fermenting 'new wine' available only during the autumn harvest, when savory onion tarts (*Zwiebelkuchen*) are traditionally made." },
+                { q: "The Pfalz Culinary Identity", a: "The cuisine is famously robust, hearty, rustic, and product-driven, creating a natural and symbiotic relationship with the region's powerful, structured wines." },
+                { q: "Term: Kesselfleisch", a: "A traditional boiled meat specialty, showcasing the importance of pork in the local diet." },
+                { q: "Term: Bratwurst", a: "A classic German pork sausage, a key component of the *Pfälzer Dreifaltigkeit*." },
+                { q: "Term: Leberknödel", a: "A liver dumpling, another pillar of Palatinate charcuterie and part of the 'Trinity'." },
+                { q: "Term: Quetschekuche", a: "The local name for a fresh plum cake, famously paired with potato soup." },
+                { q: "Term: Kirschwasser", a: "A type of *Obstwasser* (fruit brandy) distilled from cherries." },
+                { q: "Term: Naturtrüb", a: "Means 'naturally cloudy.' When seen on a beer label, it indicates the beer is unfiltered, a common practice for traditional local breweries." },
+                { q: "The *Dubbeglas*", a: "A distinctive 0.5-liter dimpled glass. It is the traditional vessel for serving *Weinschorle* and is a cultural icon of the region." }
+            ],
+            critic: [
+                { q: "Benchmark Producer: Dr. Bürklin-Wolf", a: "A historic estate and pioneer of biodynamic viticulture in the Pfalz. Famed for powerful, long-lived dry Rieslings from top Forster sites like Kirchenstück and Pechstein. Instrumental in creating a site-based classification." },
+                { q: "Benchmark Producer: Ökonomierat Rebholz", a: "A standard-bearer for purity and terroir expression in the Südliche Weinstraße. Known for intensely mineral, bone-dry, and exceptionally long-lived Rieslings from unique sites like the red slate of Kastanienbusch." },
+                { q: "Benchmark Producer: Weingut Friedrich Becker", a: "Located on the Alsatian border, considered a master of German Spätburgunder. Top wines from the Kammerberg and Sankt Paul vineyards draw comparisons to Grand Cru Burgundy." },
+                { q: "Benchmark Producer: Von Winning", a: "A leader of the modern Pfalz style. Winemaker Stephan Attmann uses Burgundian oak barrels to ferment and age his top Rieslings, creating powerful, textural, and complex wines that have garnered immense acclaim." },
+                { q: "Vintage Profile: Hot & Dry (e.g., 2018, 2020)", a: "Characterized by significant heat and drought. Produces ripe, concentrated, and powerful wines with excellent aging potential but sometimes moderate acidity. Often results in high must weights." },
+                { q: "Vintage Profile: Cool & Classic (e.g., 2021, 2010)", a: "Characterized by cooler temperatures and often higher rainfall, demanding strict selection. Produces elegant, lighter-bodied wines with high, racy acidity and great purity, reminiscent of older styles." },
+                { q: "Rising Star: Weingut Rings", a: "Brothers who started from scratch and rapidly ascended to the VDP's top ranks. Lauded for powerful red wines (Spätburgunder, Syrah) and Rieslings from sites like the Kallstadter Saumagen." },
+                { q: "Benchmark Producer: A. Christmann", a: "A leading VDP estate in the Mittelhaardt, run by former VDP president Steffen Christmann. Celebrated for elegant, precise Rieslings, with the Königsbacher Idig GG being a consistent top-rated wine." },
+                { q: "Benchmark Producer: Reichsrat von Buhl", a: "One of the historic 'three B's,' revitalized in the 2010s, partly under former Bollinger chef de cave Mathieu Kauffmann. Now a benchmark for high-quality dry Riesling and traditional-method Sekt." },
+                { q: "Value Champion: Villa Wolf", a: "Purchased in 1996 by Ernst Loosen (of Dr. Loosen). Produces a range of clean, well-made, and affordable wines that serve as excellent and widely available ambassadors for the region." },
+                { q: "Rising Star: Weingut Eymann", a: "A long-established organic and biodynamic (Demeter) estate gaining recent acclaim under Vincent Eymann for exceptional single-vineyard Spätburgunder." },
+                { q: "Rising Star: Philipp Kuhn", a: "A dynamic VDP member in the northern Pfalz, highly praised for both powerful, structured red wines (Spätburgunder, international varieties) and precise, elegant white wines." },
+                { q: "Critical Consensus: Pfalz vs. Mosel Riesling", a: "Critics agree Pfalz Riesling is richer, fuller-bodied, and more powerful than its Mosel counterpart, due to the warmer climate and different soils. Pfalz is 'earthy' while Mosel is 'shimmering'." },
+                { q: "Term: Bodengeschmack", a: "German for 'taste of the soil.' A term used by critics to capture the savory, textural, and saline quality that is a hallmark of Pfalz Riesling, distinguishing it from more purely fruit-driven styles." },
+                { q: "Vintage Profile: 2012", a: "A classic vintage of exceptional purity and ripe acidity. A long, cool growing season with no botrytis pressure allowed for full ripeness at moderate sugar levels, though quantities were very small." },
+                { q: "Vintage Profile: 2014", a: "A very difficult vintage. A wet August led to widespread rot and problems with the invasive drosophila fly, especially for red grapes. Strict selection was essential; quality was mixed." },
+                { q: "Vintage Profile: 2016", a: "A year of two halves. Devastating mildew pressure from a wet spring was saved by a perfect, dry autumn, resulting in elegant, classic wines with moderate alcohol." },
+                { q: "Vintage Profile: 2017", a: "A vintage of contrasts, defined by severe late April frosts that dramatically reduced yields. The resulting wines are powerful and concentrated with intense flavors and ripe acidity." },
+                { q: "Vintage Profile: 2019", a: "A very high-quality vintage. While warm and dry, it was less extreme than 2018, resulting in wines with excellent balance, pure fruit, vibrant acidity, and moderate alcohol levels." },
+                { q: "Key Vineyard: Forster Kirchenstück", a: "Considered one of Germany's greatest Grand Crus. Rated highest in the 1828 classification, this small, warm, basalt-soil site is shared by top producers and produces legendary Rieslings." },
+                { q: "Key Vineyard: Königsbacher Idig", a: "A Grosse Lage farmed by A. Christmann. It is a limestone-rich natural amphitheater that produces one of Germany's most highly-rated and elegant dry white wines." },
+                { q: "Key Vineyard: Birkweiler Kastanienbusch", a: "A top site in the Südliche Weinstraße, famous for its unique red slate soil, which imparts intense minerality. A signature vineyard for Ökonomierat Rebholz." },
+                { q: "Key Vineyard: Schweigener Kammerberg", a: "A top Spätburgunder site on the French border, farmed by producers like Friedrich Becker. Its limestone soils produce some of Germany's most profound and 'Burgundian' red wines." },
+                { q: "Producer Philosophy: Koehler-Ruprecht", a: "An exemplar of the 'benchmark traditionalist' style, known for using large, old oak casks (*Stückfass*) and spontaneous fermentation to create terroir-expressive, long-lived wines." },
+                { q: "Figure: Hans-Günter Schwarz", a: "The former cellarmaster at Müller-Catoir. His philosophy of 'minimalism in the cellar, activism in the vines' has influenced two generations of the Pfalz's most important winemakers." }
+            ]
+        };
+
 
         // --- APPLICATION STATE ---
         let currentModule = null;
@@ -802,16 +968,8 @@
             flashcardDeck = [];
             topics.forEach(topic => {
                 const topicKey = topic.toLowerCase();
-                if (topicKey === 'history') {
-                    gameData.historian.questions.forEach(q => {
-                        q.events.forEach(e => {
-                            flashcardDeck.push({ q: e.text, a: e.date });
-                        });
-                    });
-                } else if (gameData[topicKey] && gameData[topicKey].questions) {
-                     gameData[topicKey].questions.forEach(q => {
-                        flashcardDeck.push({ q: q.q, a: q.a });
-                    });
+                if (flashcardDecks[topicKey]) {
+                    flashcardDeck.push(...flashcardDecks[topicKey]);
                 }
             });
             
@@ -831,8 +989,8 @@
             }
             
             const card = flashcardDeck[currentCardIndex];
-            document.getElementById('flashcard-front').textContent = card.q;
-            document.getElementById('flashcard-back').textContent = card.a;
+            document.getElementById('flashcard-front').innerHTML = card.q;
+            document.getElementById('flashcard-back').innerHTML = card.a;
             document.getElementById('card-counter').textContent = `Card ${currentCardIndex + 1} of ${flashcardDeck.length}`;
             
             document.getElementById('flashcard').classList.remove('is-flipped');
